@@ -1,0 +1,29 @@
+# Azure OpenAI 설정
+[azure_openai]
+endpoint = "https://your-resource-name.openai.azure.com/"
+api_key = "your-azure-openai-api-key-here"
+deployment_curriculum = "your-deployment-name-here"
+
+# 애플리케이션 설정
+[app]
+title = "후기성도 예수그리스도 교회 공과 준비 도우미"
+debug = false
+log_level = "INFO"
+
+# 데이터베이스 설정
+[database]
+path = "curriculum_data.db"
+backup_enabled = true
+
+# 웹 스크래핑 설정
+[scraper]
+base_url = "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025"
+timeout = 30
+retry_count = 3
+
+# AI 모델 설정
+[ai]
+temperature = 0.7
+max_tokens = 2000
+chat_max_tokens = 1000
+model_version = "2024-02-15-preview" 

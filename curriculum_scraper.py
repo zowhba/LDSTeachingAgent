@@ -13,25 +13,25 @@ class CurriculumScraper:
         })
 
     def get_current_week_curriculum(self):
-        """현재 주의 공과 정보를 가져옵니다."""
+        """?�재 주의 공과 ?�보�?가?�옵?�다."""
         return self.get_curriculum_by_date(datetime.now())
     
     def get_curriculum_by_date(self, target_date):
-        """특정 날짜의 공과 정보를 가져옵니다."""
+        """?�정 ?�짜??공과 ?�보�?가?�옵?�다."""
         try:
-            # 2025년 교리와 성약 공과 페이지
+            # 2025??교리?� ?�약 공과 ?�이지
             url = "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025?lang=kor"
             
-            # 2025년 주차별 공과 매핑 (실제 교회 달력 기준)
+            # 2025??주차�?공과 매핑 (?�제 교회 ?�력 기�?)
             week_mapping = self.get_week_mapping_2025()
             
-            # 해당 날짜의 주차 찾기
+            # ?�당 ?�짜??주차 찾기
             target_week = None
             for week_info in week_mapping:
                 start_date = datetime.strptime(week_info['start_date'], '%Y-%m-%d')
                 end_date = datetime.strptime(week_info['end_date'], '%Y-%m-%d')
                 
-                # 날짜만 비교 (시간 제외)
+                # ?�짜�?비교 (?�간 ?�외)
                 target_date_only = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
                 
                 if start_date <= target_date_only <= end_date:
@@ -39,11 +39,11 @@ class CurriculumScraper:
                     break
             
             if target_week:
-                # 직접 URL 생성 (더 안정적)
+                # 직접 URL ?�성 (???�정??
                 lesson_url = self.generate_direct_url(target_week)
                 lesson_title = f"{target_week['week_range']}: {target_week['title_keywords']}"
                 
-                # 해당 주의 상세 내용 가져오기
+                # ?�당 주의 ?�세 ?�용 가?�오�?
                 lesson_content = self.get_lesson_content(lesson_url)
                 
                 return {
@@ -53,24 +53,24 @@ class CurriculumScraper:
                     "week_info": target_week
                 }
             
-            # 매칭되지 않은 경우 기본 정보 반환
+            # 매칭?��? ?��? 경우 기본 ?�보 반환
             return {
-                "title": f"2025년 {target_date.strftime('%m월 %d일')} 주차 공과",
-                "content": "이번 주 공과는 교리와 성약의 가르침에 관한 내용입니다.",
+                "title": f"2025??{target_date.strftime('%m??%d??)} 주차 공과",
+                "content": "?�번 �?공과??교리?� ?�약??가르침??관???�용?�니??",
                 "url": url
             }
                 
         except Exception as e:
-            print(f"공과 정보 스크래핑 중 오류: {e}")
-            # 오류 시 기본 정보 반환
+            print(f"공과 ?�보 ?�크?�핑 �??�류: {e}")
+            # ?�류 ??기본 ?�보 반환
             return {
-                "title": f"2025년 {target_date.strftime('%m월 %d일')} 주차 공과",
-                "content": "이번 주 공과는 교리와 성약의 가르침에 관한 내용입니다.",
+                "title": f"2025??{target_date.strftime('%m??%d??)} 주차 공과",
+                "content": "?�번 �?공과??교리?� ?�약??가르침??관???�용?�니??",
                 "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025?lang=kor"
             }
     
     def get_available_weeks(self):
-        """사용 가능한 주차 목록을 반환합니다."""
+        """?�용 가?�한 주차 목록??반환?�니??"""
         week_mapping = self.get_week_mapping_2025()
         available_weeks = []
         
@@ -90,521 +90,521 @@ class CurriculumScraper:
         return available_weeks
 
     def get_week_mapping_2025(self):
-        """2025년 주차별 공과 매핑 정보"""
+        """2025??주차�?공과 매핑 ?�보"""
         return [
-            # 12월
+            # 12??
             {
                 'start_date': '2025-12-29',
                 'end_date': '2025-12-31',
-                'week_range': '12월 29일~31일',
-                'title_keywords': '교리와 성약 137~138편',
-                'section': '12월'
+                'week_range': '12??29??31??,
+                'title_keywords': '교리?� ?�약 137-138??,
+                'section': '12??
             },
             {
                 'start_date': '2025-12-22',
                 'end_date': '2025-12-28',
-                'week_range': '12월 22일~28일',
-                'title_keywords': '교리와 성약 135~136편',
-                'section': '12월'
+                'week_range': '12??22??28??,
+                'title_keywords': '교리?� ?�약 135-136??,
+                'section': '12??
             },
             {
                 'start_date': '2025-12-15',
                 'end_date': '2025-12-21',
-                'week_range': '12월 15일~21일',
-                'title_keywords': '교리와 성약 133~134편',
-                'section': '12월'
+                'week_range': '12??15??21??,
+                'title_keywords': '교리?� ?�약 133-134??,
+                'section': '12??
             },
             {
                 'start_date': '2025-12-08',
                 'end_date': '2025-12-14',
-                'week_range': '12월 8일~14일',
-                'title_keywords': '교리와 성약 131~132편',
-                'section': '12월'
+                'week_range': '12??8??14??,
+                'title_keywords': '교리?� ?�약 131-132??,
+                'section': '12??
             },
             {
                 'start_date': '2025-12-01',
                 'end_date': '2025-12-07',
-                'week_range': '12월 1일~7일',
-                'title_keywords': '교리와 성약 129~130편',
-                'section': '12월'
+                'week_range': '12??1??7??,
+                'title_keywords': '교리?� ?�약 129-130??,
+                'section': '12??
             },
-            # 11월
+            # 11??
             {
                 'start_date': '2025-11-24',
                 'end_date': '2025-11-30',
-                'week_range': '11월 24일~30일',
-                'title_keywords': '교리와 성약 127~128편',
-                'section': '11월'
+                'week_range': '11??24??30??,
+                'title_keywords': '교리?� ?�약 127-128??,
+                'section': '11??
             },
             {
                 'start_date': '2025-11-17',
                 'end_date': '2025-11-23',
-                'week_range': '11월 17일~23일',
-                'title_keywords': '교리와 성약 125~126편',
-                'section': '11월'
+                'week_range': '11??17??23??,
+                'title_keywords': '교리?� ?�약 125-126??,
+                'section': '11??
             },
             {
                 'start_date': '2025-11-10',
                 'end_date': '2025-11-16',
-                'week_range': '11월 10일~16일',
-                'title_keywords': '교리와 성약 123~124편',
-                'section': '11월'
+                'week_range': '11??10??16??,
+                'title_keywords': '교리?� ?�약 123-124??,
+                'section': '11??
             },
             {
                 'start_date': '2025-11-03',
                 'end_date': '2025-11-09',
-                'week_range': '11월 3일~9일',
-                'title_keywords': '교리와 성약 121~122편',
-                'section': '11월'
+                'week_range': '11??3??9??,
+                'title_keywords': '교리?� ?�약 121-122??,
+                'section': '11??
             },
-            # 10월
+            # 10??
             {
                 'start_date': '2025-10-27',
                 'end_date': '2025-11-02',
-                'week_range': '10월 27일~11월 2일',
-                'title_keywords': '교리와 성약 119~120편',
-                'section': '10월'
+                'week_range': '10??27??11??2??,
+                'title_keywords': '교리?� ?�약 119-120??,
+                'section': '10??
             },
             {
                 'start_date': '2025-10-20',
                 'end_date': '2025-10-26',
-                'week_range': '10월 20일~26일',
-                'title_keywords': '교리와 성약 117~118편',
-                'section': '10월'
+                'week_range': '10??20??26??,
+                'title_keywords': '교리?� ?�약 117-118??,
+                'section': '10??
             },
             {
                 'start_date': '2025-10-13',
                 'end_date': '2025-10-19',
-                'week_range': '10월 13일~19일',
-                'title_keywords': '교리와 성약 115~116편',
-                'section': '10월'
+                'week_range': '10??13??19??,
+                'title_keywords': '교리?� ?�약 115-116??,
+                'section': '10??
             },
             {
                 'start_date': '2025-10-06',
                 'end_date': '2025-10-12',
-                'week_range': '10월 6일~12일',
-                'title_keywords': '교리와 성약 113~114편',
-                'section': '10월'
+                'week_range': '10??6??12??,
+                'title_keywords': '교리?� ?�약 113-114??,
+                'section': '10??
             },
-            # 9월
+            # 9??
             {
                 'start_date': '2025-09-29',
                 'end_date': '2025-10-05',
-                'week_range': '9월 29일~10월 5일',
-                'title_keywords': '교리와 성약 111~112편',
-                'section': '9월'
+                'week_range': '9??29??10??5??,
+                'title_keywords': '교리?� ?�약 111-112??,
+                'section': '9??
             },
             {
                 'start_date': '2025-09-22',
                 'end_date': '2025-09-28',
-                'week_range': '9월 22일~28일',
-                'title_keywords': '교리와 성약 109~110편',
-                'section': '9월'
+                'week_range': '9??22??28??,
+                'title_keywords': '교리?� ?�약 109-110??,
+                'section': '9??
             },
             {
                 'start_date': '2025-09-15',
                 'end_date': '2025-09-21',
-                'week_range': '9월 15일~21일',
-                'title_keywords': '교리와 성약 107~108편',
-                'section': '9월'
+                'week_range': '9??15??21??,
+                'title_keywords': '교리?� ?�약 107-108??,
+                'section': '9??
             },
             {
                 'start_date': '2025-09-08',
                 'end_date': '2025-09-14',
-                'week_range': '9월 8일~14일',
-                'title_keywords': '교리와 성약 105~106편',
-                'section': '9월'
+                'week_range': '9??8??14??,
+                'title_keywords': '교리?� ?�약 105-106??,
+                'section': '9??
             },
             {
                 'start_date': '2025-09-01',
                 'end_date': '2025-09-07',
-                'week_range': '9월 1일~7일',
-                'title_keywords': '교리와 성약 103~104편',
-                'section': '9월'
+                'week_range': '9??1??7??,
+                'title_keywords': '교리?� ?�약 103-104??,
+                'section': '9??
             },
-            # 8월
+            # 8??
             {
                 'start_date': '2025-08-25',
                 'end_date': '2025-08-31',
-                'week_range': '8월 25일~31일',
-                'title_keywords': '교리와 성약 101~102편',
-                'section': '8월'
+                'week_range': '8??25??31??,
+                'title_keywords': '교리?� ?�약 101-102??,
+                'section': '8??
             },
             {
                 'start_date': '2025-08-18',
                 'end_date': '2025-08-24',
-                'week_range': '8월 18일~24일',
-                'title_keywords': '교리와 성약 99~100편',
-                'section': '8월'
+                'week_range': '8??18??24??,
+                'title_keywords': '교리?� ?�약 99-100??,
+                'section': '8??
             },
             {
                 'start_date': '2025-08-11',
                 'end_date': '2025-08-17',
-                'week_range': '8월 11일~17일',
-                'title_keywords': '교리와 성약 97~98편',
-                'section': '8월'
+                'week_range': '8??11??17??,
+                'title_keywords': '교리?� ?�약 97-98??,
+                'section': '8??
             },
             {
                 'start_date': '2025-08-04',
                 'end_date': '2025-08-10',
-                'week_range': '8월 4일~10일',
-                'title_keywords': '교리와 성약 95~96편',
-                'section': '8월'
+                'week_range': '8??4??10??,
+                'title_keywords': '교리?� ?�약 95-96??,
+                'section': '8??
             },
-            # 7월
+            # 7??
             {
                 'start_date': '2025-07-28',
                 'end_date': '2025-08-03',
-                'week_range': '7월 28일~8월 3일',
-                'title_keywords': '교리와 성약 84~86편',
-                'section': '7월'
+                'week_range': '7??28??8??3??,
+                'title_keywords': '교리?� ?�약 84-86??,
+                'section': '7??
             },
             {
                 'start_date': '2025-07-21',
                 'end_date': '2025-07-27',
-                'week_range': '7월 21일~27일',
-                'title_keywords': '교리와 성약 81~83편',
-                'section': '7월'
+                'week_range': '7??21??27??,
+                'title_keywords': '교리?� ?�약 81-83??,
+                'section': '7??
             },
             {
                 'start_date': '2025-07-14',
                 'end_date': '2025-07-20',
-                'week_range': '7월 14일~20일',
-                'title_keywords': '교리와 성약 77~80편',
-                'section': '7월'
+                'week_range': '7??14??20??,
+                'title_keywords': '교리?� ?�약 77-80??,
+                'section': '7??
             },
             {
                 'start_date': '2025-07-07',
                 'end_date': '2025-07-13',
-                'week_range': '7월 7일~13일',
-                'title_keywords': '교리와 성약 76편',
-                'section': '7월'
+                'week_range': '7??7??13??,
+                'title_keywords': '교리?� ?�약 76??,
+                'section': '7??
             },
             {
                 'start_date': '2025-06-30',
                 'end_date': '2025-07-06',
-                'week_range': '6월 30일~7월 6일',
-                'title_keywords': '교리와 성약 71~75편',
-                'section': '7월'
+                'week_range': '6??30??7??6??,
+                'title_keywords': '교리?� ?�약 71-75??,
+                'section': '7??
             },
-            # 6월
+            # 6??
             {
                 'start_date': '2025-06-23',
                 'end_date': '2025-06-29',
-                'week_range': '6월 23일~29일',
-                'title_keywords': '교리와 성약 67~70편',
-                'section': '6월'
+                'week_range': '6??23??29??,
+                'title_keywords': '교리?� ?�약 67-70??,
+                'section': '6??
             },
             {
                 'start_date': '2025-06-16',
                 'end_date': '2025-06-22',
-                'week_range': '6월 16일~22일',
-                'title_keywords': '교리와 성약 65~66편',
-                'section': '6월'
+                'week_range': '6??16??22??,
+                'title_keywords': '교리?� ?�약 65-66??,
+                'section': '6??
             },
             {
                 'start_date': '2025-06-09',
                 'end_date': '2025-06-15',
-                'week_range': '6월 9일~15일',
-                'title_keywords': '교리와 성약 63~64편',
-                'section': '6월'
+                'week_range': '6??9??15??,
+                'title_keywords': '교리?� ?�약 63-64??,
+                'section': '6??
             },
             {
                 'start_date': '2025-06-02',
                 'end_date': '2025-06-08',
-                'week_range': '6월 2일~8일',
-                'title_keywords': '교리와 성약 60~62편',
-                'section': '6월'
+                'week_range': '6??2??8??,
+                'title_keywords': '교리?� ?�약 60-62??,
+                'section': '6??
             },
-            # 5월
+            # 5??
             {
                 'start_date': '2025-05-26',
                 'end_date': '2025-06-01',
-                'week_range': '5월 26일~6월 1일',
-                'title_keywords': '교리와 성약 58~59편',
-                'section': '5월'
+                'week_range': '5??26??6??1??,
+                'title_keywords': '교리?� ?�약 58-59??,
+                'section': '5??
             },
             {
                 'start_date': '2025-05-19',
                 'end_date': '2025-05-25',
-                'week_range': '5월 19일~25일',
-                'title_keywords': '교리와 성약 56~57편',
-                'section': '5월'
+                'week_range': '5??19??25??,
+                'title_keywords': '교리?� ?�약 56-57??,
+                'section': '5??
             },
             {
                 'start_date': '2025-05-12',
                 'end_date': '2025-05-18',
-                'week_range': '5월 12일~18일',
-                'title_keywords': '교리와 성약 54~55편',
-                'section': '5월'
+                'week_range': '5??12??18??,
+                'title_keywords': '교리?� ?�약 54-55??,
+                'section': '5??
             },
             {
                 'start_date': '2025-05-05',
                 'end_date': '2025-05-11',
-                'week_range': '5월 5일~11일',
-                'title_keywords': '교리와 성약 51~53편',
-                'section': '5월'
+                'week_range': '5??5??11??,
+                'title_keywords': '교리?� ?�약 51-53??,
+                'section': '5??
             },
-            # 4월
+            # 4??
             {
                 'start_date': '2025-04-28',
                 'end_date': '2025-05-04',
-                'week_range': '4월 28일~5월 4일',
-                'title_keywords': '교리와 성약 49~50편',
-                'section': '4월'
+                'week_range': '4??28??5??4??,
+                'title_keywords': '교리?� ?�약 49-50??,
+                'section': '4??
             },
             {
                 'start_date': '2025-04-21',
                 'end_date': '2025-04-27',
-                'week_range': '4월 21일~27일',
-                'title_keywords': '교리와 성약 46~48편',
-                'section': '4월'
+                'week_range': '4??21??27??,
+                'title_keywords': '교리?� ?�약 46-48??,
+                'section': '4??
             },
             {
                 'start_date': '2025-04-14',
                 'end_date': '2025-04-20',
-                'week_range': '4월 14일~20일',
-                'title_keywords': '교리와 성약 43~45편',
-                'section': '4월'
+                'week_range': '4??14??20??,
+                'title_keywords': '교리?� ?�약 43-45??,
+                'section': '4??
             },
             {
                 'start_date': '2025-04-07',
                 'end_date': '2025-04-13',
-                'week_range': '4월 7일~13일',
-                'title_keywords': '교리와 성약 41~42편',
-                'section': '4월'
+                'week_range': '4??7??13??,
+                'title_keywords': '교리?� ?�약 41-42??,
+                'section': '4??
             },
             {
                 'start_date': '2025-03-31',
                 'end_date': '2025-04-06',
-                'week_range': '3월 31일~4월 6일',
-                'title_keywords': '교리와 성약 38~40편',
-                'section': '4월'
+                'week_range': '3??31??4??6??,
+                'title_keywords': '교리?� ?�약 38-40??,
+                'section': '4??
             },
-            # 3월
+            # 3??
             {
                 'start_date': '2025-03-24',
                 'end_date': '2025-03-30',
-                'week_range': '3월 24일~30일',
-                'title_keywords': '교리와 성약 37편',
-                'section': '3월'
+                'week_range': '3??24??30??,
+                'title_keywords': '교리?� ?�약 37??,
+                'section': '3??
             },
             {
                 'start_date': '2025-03-17',
                 'end_date': '2025-03-23',
-                'week_range': '3월 17일~23일',
-                'title_keywords': '교리와 성약 35~36편',
-                'section': '3월'
+                'week_range': '3??17??23??,
+                'title_keywords': '교리?� ?�약 35-36??,
+                'section': '3??
             },
             {
                 'start_date': '2025-03-10',
                 'end_date': '2025-03-16',
-                'week_range': '3월 10일~16일',
-                'title_keywords': '교리와 성약 33~34편',
-                'section': '3월'
+                'week_range': '3??10??16??,
+                'title_keywords': '교리?� ?�약 33-34??,
+                'section': '3??
             },
             {
                 'start_date': '2025-03-03',
                 'end_date': '2025-03-09',
-                'week_range': '3월 3일~9일',
-                'title_keywords': '교리와 성약 30~32편',
-                'section': '3월'
+                'week_range': '3??3??9??,
+                'title_keywords': '교리?� ?�약 30-32??,
+                'section': '3??
             },
-            # 2월
+            # 2??
             {
                 'start_date': '2025-02-24',
                 'end_date': '2025-03-02',
-                'week_range': '2월 24일~3월 2일',
-                'title_keywords': '교리와 성약 27~29편',
-                'section': '2월'
+                'week_range': '2??24??3??2??,
+                'title_keywords': '교리?� ?�약 27-29??,
+                'section': '2??
             },
             {
                 'start_date': '2025-02-17',
                 'end_date': '2025-02-23',
-                'week_range': '2월 17일~23일',
-                'title_keywords': '교리와 성약 25~26편',
-                'section': '2월'
+                'week_range': '2??17??23??,
+                'title_keywords': '교리?� ?�약 25-26??,
+                'section': '2??
             },
             {
                 'start_date': '2025-02-10',
                 'end_date': '2025-02-16',
-                'week_range': '2월 10일~16일',
-                'title_keywords': '교리와 성약 23~24편',
-                'section': '2월'
+                'week_range': '2??10??16??,
+                'title_keywords': '교리?� ?�약 23-24??,
+                'section': '2??
             },
             {
                 'start_date': '2025-02-03',
                 'end_date': '2025-02-09',
-                'week_range': '2월 3일~9일',
-                'title_keywords': '교리와 성약 20~22편',
-                'section': '2월'
+                'week_range': '2??3??9??,
+                'title_keywords': '교리?� ?�약 20-22??,
+                'section': '2??
             },
-            # 1월
+            # 1??
             {
                 'start_date': '2025-01-27',
                 'end_date': '2025-02-02',
-                'week_range': '1월 27일~2월 2일',
-                'title_keywords': '교리와 성약 17~19편',
-                'section': '1월'
+                'week_range': '1??27??2??2??,
+                'title_keywords': '교리?� ?�약 17-19??,
+                'section': '1??
             },
             {
                 'start_date': '2025-01-20',
                 'end_date': '2025-01-26',
-                'week_range': '1월 20일~26일',
-                'title_keywords': '교리와 성약 14~16편',
-                'section': '1월'
+                'week_range': '1??20??26??,
+                'title_keywords': '교리?� ?�약 14-16??,
+                'section': '1??
             },
             {
                 'start_date': '2025-01-13',
                 'end_date': '2025-01-19',
-                'week_range': '1월 13일~19일',
-                'title_keywords': '교리와 성약 11~13편',
-                'section': '1월'
+                'week_range': '1??13??19??,
+                'title_keywords': '교리?� ?�약 11-13??,
+                'section': '1??
             },
             {
                 'start_date': '2025-01-06',
                 'end_date': '2025-01-12',
-                'week_range': '1월 6일~12일',
-                'title_keywords': '교리와 성약 8~10편',
-                'section': '1월'
+                'week_range': '1??6??12??,
+                'title_keywords': '교리?� ?�약 8-10??,
+                'section': '1??
             },
             {
                 'start_date': '2025-01-01',
                 'end_date': '2025-01-05',
-                'week_range': '1월 1일~5일',
-                'title_keywords': '교리와 성약 1~7편',
-                'section': '1월'
+                'week_range': '1??1??5??,
+                'title_keywords': '교리?� ?�약 1-7??,
+                'section': '1??
             }
         ]
 
     def generate_direct_url(self, week_info):
-        """주차 정보를 바탕으로 직접 URL 생성"""
-        # 2025년 교리와 성약 공과 URL 패턴
+        """주차 ?�보�?바탕?�로 직접 URL ?�성"""
+        # 2025??교리?� ?�약 공과 URL ?�턴
         base_url = "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025"
         
-        # 주차별 URL 매핑 (실제 교회 웹사이트 구조 기반)
+        # 주차�?URL 매핑 (?�제 교회 ?�사?�트 구조 기반)
         url_mapping = {
-            # 12월
-            '12월 29일~31일': '52-doctrine-and-covenants-137-138',
-            '12월 22일~28일': '51-doctrine-and-covenants-135-136',
-            '12월 15일~21일': '50-doctrine-and-covenants-133-134',
-            '12월 8일~14일': '49-doctrine-and-covenants-131-132',
-            '12월 1일~7일': '48-doctrine-and-covenants-129-130',
-            # 11월
-            '11월 24일~30일': '47-doctrine-and-covenants-127-128',
-            '11월 17일~23일': '46-doctrine-and-covenants-125-126',
-            '11월 10일~16일': '45-doctrine-and-covenants-123-124',
-            '11월 3일~9일': '44-doctrine-and-covenants-121-122',
-            # 10월
-            '10월 27일~11월 2일': '43-doctrine-and-covenants-119-120',
-            '10월 20일~26일': '42-doctrine-and-covenants-117-118',
-            '10월 13일~19일': '41-doctrine-and-covenants-115-116',
-            '10월 6일~12일': '40-doctrine-and-covenants-113-114',
-            # 9월
-            '9월 29일~10월 5일': '39-doctrine-and-covenants-111-112',
-            '9월 22일~28일': '38-doctrine-and-covenants-109-110',
-            '9월 15일~21일': '37-doctrine-and-covenants-107-108',
-            '9월 8일~14일': '36-doctrine-and-covenants-105-106',
-            '9월 1일~7일': '35-doctrine-and-covenants-103-104',
-            # 8월
-            '8월 25일~31일': '34-doctrine-and-covenants-101-102',
-            '8월 18일~24일': '33-doctrine-and-covenants-99-100',
-            '8월 11일~17일': '32-doctrine-and-covenants-97-98',
-            '8월 4일~10일': '31-doctrine-and-covenants-95-96',
-            # 7월
-            '7월 28일~8월 3일': '31-doctrine-and-covenants-84-86',
-            '7월 21일~27일': '30-doctrine-and-covenants-81-83',
-            '7월 14일~20일': '29-doctrine-and-covenants-77-80',
-            '7월 7일~13일': '28-doctrine-and-covenants-76',
-            '6월 30일~7월 6일': '27-doctrine-and-covenants-71-75',
-            # 6월
-            '6월 23일~29일': '26-doctrine-and-covenants-67-70',
-            '6월 16일~22일': '25-doctrine-and-covenants-65-66',
-            '6월 9일~15일': '24-doctrine-and-covenants-63-64',
-            '6월 2일~8일': '23-doctrine-and-covenants-60-62',
-            # 5월
-            '5월 26일~6월 1일': '22-doctrine-and-covenants-58-59',
-            '5월 19일~25일': '21-doctrine-and-covenants-56-57',
-            '5월 12일~18일': '20-doctrine-and-covenants-54-55',
-            '5월 5일~11일': '19-doctrine-and-covenants-51-53',
-            # 4월
-            '4월 28일~5월 4일': '18-doctrine-and-covenants-49-50',
-            '4월 21일~27일': '17-doctrine-and-covenants-46-48',
-            '4월 14일~20일': '16-doctrine-and-covenants-43-45',
-            '4월 7일~13일': '15-doctrine-and-covenants-41-42',
-            '3월 31일~4월 6일': '14-doctrine-and-covenants-38-40',
-            # 3월
-            '3월 24일~30일': '13-doctrine-and-covenants-37',
-            '3월 17일~23일': '12-doctrine-and-covenants-35-36',
-            '3월 10일~16일': '11-doctrine-and-covenants-33-34',
-            '3월 3일~9일': '10-doctrine-and-covenants-30-32',
-            # 2월
-            '2월 24일~3월 2일': '09-doctrine-and-covenants-27-29',
-            '2월 17일~23일': '08-doctrine-and-covenants-25-26',
-            '2월 10일~16일': '07-doctrine-and-covenants-23-24',
-            '2월 3일~9일': '06-doctrine-and-covenants-20-22',
-            # 1월
-            '1월 27일~2월 2일': '05-doctrine-and-covenants-17-19',
-            '1월 20일~26일': '04-doctrine-and-covenants-14-16',
-            '1월 13일~19일': '03-doctrine-and-covenants-11-13',
-            '1월 6일~12일': '02-doctrine-and-covenants-8-10',
-            '1월 1일~5일': '01-doctrine-and-covenants-1-7'
+            # 12??
+            '12??29??31??: '52-doctrine-and-covenants-137-138',
+            '12??22??28??: '51-doctrine-and-covenants-135-136',
+            '12??15??21??: '50-doctrine-and-covenants-133-134',
+            '12??8??14??: '49-doctrine-and-covenants-131-132',
+            '12??1??7??: '48-doctrine-and-covenants-129-130',
+            # 11??
+            '11??24??30??: '47-doctrine-and-covenants-127-128',
+            '11??17??23??: '46-doctrine-and-covenants-125-126',
+            '11??10??16??: '45-doctrine-and-covenants-123-124',
+            '11??3??9??: '44-doctrine-and-covenants-121-122',
+            # 10??
+            '10??27??11??2??: '43-doctrine-and-covenants-119-120',
+            '10??20??26??: '42-doctrine-and-covenants-117-118',
+            '10??13??19??: '41-doctrine-and-covenants-115-116',
+            '10??6??12??: '40-doctrine-and-covenants-113-114',
+            # 9??
+            '9??29??10??5??: '39-doctrine-and-covenants-111-112',
+            '9??22??28??: '38-doctrine-and-covenants-109-110',
+            '9??15??21??: '37-doctrine-and-covenants-107-108',
+            '9??8??14??: '36-doctrine-and-covenants-105-106',
+            '9??1??7??: '35-doctrine-and-covenants-103-104',
+            # 8??
+            '8??25??31??: '34-doctrine-and-covenants-101-102',
+            '8??18??24??: '33-doctrine-and-covenants-99-100',
+            '8??11??17??: '32-doctrine-and-covenants-97-98',
+            '8??4??10??: '31-doctrine-and-covenants-95-96',
+            # 7??
+            '7??28??8??3??: '31-doctrine-and-covenants-84-86',
+            '7??21??27??: '30-doctrine-and-covenants-81-83',
+            '7??14??20??: '29-doctrine-and-covenants-77-80',
+            '7??7??13??: '28-doctrine-and-covenants-76',
+            '6??30??7??6??: '27-doctrine-and-covenants-71-75',
+            # 6??
+            '6??23??29??: '26-doctrine-and-covenants-67-70',
+            '6??16??22??: '25-doctrine-and-covenants-65-66',
+            '6??9??15??: '24-doctrine-and-covenants-63-64',
+            '6??2??8??: '23-doctrine-and-covenants-60-62',
+            # 5??
+            '5??26??6??1??: '22-doctrine-and-covenants-58-59',
+            '5??19??25??: '21-doctrine-and-covenants-56-57',
+            '5??12??18??: '20-doctrine-and-covenants-54-55',
+            '5??5??11??: '19-doctrine-and-covenants-51-53',
+            # 4??
+            '4??28??5??4??: '18-doctrine-and-covenants-49-50',
+            '4??21??27??: '17-doctrine-and-covenants-46-48',
+            '4??14??20??: '16-doctrine-and-covenants-43-45',
+            '4??7??13??: '15-doctrine-and-covenants-41-42',
+            '3??31??4??6??: '14-doctrine-and-covenants-38-40',
+            # 3??
+            '3??24??30??: '13-doctrine-and-covenants-37',
+            '3??17??23??: '12-doctrine-and-covenants-35-36',
+            '3??10??16??: '11-doctrine-and-covenants-33-34',
+            '3??3??9??: '10-doctrine-and-covenants-30-32',
+            # 2??
+            '2??24??3??2??: '09-doctrine-and-covenants-27-29',
+            '2??17??23??: '08-doctrine-and-covenants-25-26',
+            '2??10??16??: '07-doctrine-and-covenants-23-24',
+            '2??3??9??: '06-doctrine-and-covenants-20-22',
+            # 1??
+            '1??27??2??2??: '05-doctrine-and-covenants-17-19',
+            '1??20??26??: '04-doctrine-and-covenants-14-16',
+            '1??13??19??: '03-doctrine-and-covenants-11-13',
+            '1??6??12??: '02-doctrine-and-covenants-8-10',
+            '1??1??5??: '01-doctrine-and-covenants-1-7'
         }
         
         week_range = week_info['week_range']
         if week_range in url_mapping:
             return f"{base_url}/{url_mapping[week_range]}?lang=kor"
         else:
-            # 매핑되지 않은 경우 기본 URL 반환
+            # 매핑?��? ?��? 경우 기본 URL 반환
             return f"{base_url}?lang=kor"
 
     def get_lesson_content(self, lesson_url):
-        """특정 주의 상세 내용을 가져옵니다."""
+        """?�정 주의 ?�세 ?�용??가?�옵?�다."""
         try:
             response = self.session.get(lesson_url)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            # 주요 내용 추출
+            # 주요 ?�용 추출
             content_sections = []
             
-            # 제목 찾기 (h1 태그)
+            # ?�목 찾기 (h1 ?�그)
             title = soup.find('h1')
             if title:
-                content_sections.append(f"제목: {title.get_text(strip=True)}")
+                content_sections.append(f"?�목: {title.get_text(strip=True)}")
             
-            # 부제목 찾기 (h2 태그)
+            # 부?�목 찾기 (h2 ?�그)
             subtitle = soup.find('h2')
             if subtitle:
-                content_sections.append(f"부제목: {subtitle.get_text(strip=True)}")
+                content_sections.append(f"부?�목: {subtitle.get_text(strip=True)}")
             
-            # 주요 내용 찾기 (p 태그들)
+            # 주요 ?�용 찾기 (p ?�그??
             paragraphs = soup.find_all('p')
-            for p in paragraphs[:15]:  # 처음 15개 단락만
+            for p in paragraphs[:15]:  # 처음 15�??�락�?
                 text = p.get_text(strip=True)
-                if text and len(text) > 20:  # 의미있는 텍스트만
+                if text and len(text) > 20:  # ?��??�는 ?�스?�만
                     content_sections.append(text)
             
-            # 소제목들 찾기 (h3 태그들)
+            # ?�제목들 찾기 (h3 ?�그??
             subheadings = soup.find_all('h3')
-            for h3 in subheadings[:10]:  # 처음 10개 소제목만
+            for h3 in subheadings[:10]:  # 처음 10�??�제목만
                 text = h3.get_text(strip=True)
                 if text and len(text) > 5:
                     content_sections.append(f"\n## {text}")
             
-            # 내용이 없으면 기본 메시지
+            # ?�용???�으�?기본 메시지
             if not content_sections:
-                content_sections.append("이번 주 공과의 상세 내용을 가져올 수 없습니다.")
+                content_sections.append("?�번 �?공과???�세 ?�용??가?�올 ???�습?�다.")
             
             return "\n\n".join(content_sections)
             
         except Exception as e:
-            print(f"상세 내용 가져오기 중 오류: {e}")
-            return "이번 주 공과의 상세 내용을 가져올 수 없습니다."
+            print(f"?�세 ?�용 가?�오�?�??�류: {e}")
+            return "?�번 �?공과???�세 ?�용??가?�올 ???�습?�다."
 
     def get_weekly_curriculum_list(self):
-        """전체 주차별 공과 목록을 가져옵니다."""
+        """?�체 주차�?공과 목록??가?�옵?�다."""
         try:
             url = "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025?lang=kor"
             
@@ -628,11 +628,11 @@ class CurriculumScraper:
             return curriculum_list
             
         except Exception as e:
-            print(f"공과 목록 가져오기 중 오류: {e}")
+            print(f"공과 목록 가?�오�?�??�류: {e}")
             return []
 
-# 사용 예시
+# ?�용 ?�시
 if __name__ == "__main__":
     scraper = CurriculumScraper()
     current_curriculum = scraper.get_current_week_curriculum()
-    print("현재 주 공과:", json.dumps(current_curriculum, ensure_ascii=False, indent=2)) 
+    print("?�재 �?공과:", json.dumps(current_curriculum, ensure_ascii=False, indent=2)) 
