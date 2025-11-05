@@ -1,0 +1,394 @@
+[
+  {
+    "start_date": "2025-12-29",
+    "end_date": "2025-12-31",
+    "week_range": "12월 29일~31일",
+    "title_keywords": "교리와 성약 137~138편",
+    "section": "12월"
+  },
+  {
+    "start_date": "2025-12-22",
+    "end_date": "2025-12-28",
+    "week_range": "12월 22일~28일",
+    "title_keywords": "교리와 성약 135~136편",
+    "section": "12월"
+  },
+  {
+    "start_date": "2025-12-15",
+    "end_date": "2025-12-21",
+    "week_range": "12월 15일~21일",
+    "title_keywords": "교리와 성약 133~134편",
+    "section": "12월"
+  },
+  {
+    "start_date": "2025-12-08",
+    "end_date": "2025-12-14",
+    "week_range": "12월 8일~14일",
+    "title_keywords": "교리와 성약 131~132편",
+    "section": "12월"
+  },
+  {
+    "start_date": "2025-12-01",
+    "end_date": "2025-12-07",
+    "week_range": "12월 1일~7일",
+    "title_keywords": "교리와 성약 129~130편",
+    "section": "12월"
+  },
+  {
+    "start_date": "2025-11-24",
+    "end_date": "2025-11-30",
+    "week_range": "11월 24일~30일",
+    "title_keywords": "교리와 성약 127~128편",
+    "section": "11월"
+  },
+  {
+    "start_date": "2025-11-17",
+    "end_date": "2025-11-23",
+    "week_range": "11월 17일~23일",
+    "title_keywords": "교리와 성약 125~126편",
+    "section": "11월"
+  },
+  {
+    "start_date": "2025-11-10",
+    "end_date": "2025-11-16",
+    "week_range": "11월 10일~16일",
+    "title_keywords": "교리와 성약 123~124편",
+    "section": "11월"
+  },
+  {
+    "start_date": "2025-11-03",
+    "end_date": "2025-11-09",
+    "week_range": "11월 3일~9일",
+    "title_keywords": "교리와 성약 121~122편",
+    "section": "11월"
+  },
+  {
+    "start_date": "2025-10-27",
+    "end_date": "2025-11-02",
+    "week_range": "10월 27일~11월 2일",
+    "title_keywords": "교리와 성약 119~120편",
+    "section": "10월"
+  },
+  {
+    "start_date": "2025-10-20",
+    "end_date": "2025-10-26",
+    "week_range": "10월 20일~26일",
+    "title_keywords": "교리와 성약 117~118편",
+    "section": "10월"
+  },
+  {
+    "start_date": "2025-10-13",
+    "end_date": "2025-10-19",
+    "week_range": "10월 13일~19일",
+    "title_keywords": "교리와 성약 115~116편",
+    "section": "10월"
+  },
+  {
+    "start_date": "2025-10-06",
+    "end_date": "2025-10-12",
+    "week_range": "10월 6일~12일",
+    "title_keywords": "교리와 성약 113~114편",
+    "section": "10월"
+  },
+  {
+    "start_date": "2025-09-29",
+    "end_date": "2025-10-05",
+    "week_range": "9월 29일~10월 5일",
+    "title_keywords": "교리와 성약 111~112편",
+    "section": "9월"
+  },
+  {
+    "start_date": "2025-09-22",
+    "end_date": "2025-09-28",
+    "week_range": "9월 22일~28일",
+    "title_keywords": "교리와 성약 106~108편",
+    "section": "9월"
+  },
+  {
+    "start_date": "2025-09-15",
+    "end_date": "2025-09-21",
+    "week_range": "9월 15일~21일",
+    "title_keywords": "교리와 성약 102~105편",
+    "section": "9월"
+  },
+  {
+    "start_date": "2025-09-08",
+    "end_date": "2025-09-14",
+    "week_range": "9월 8일~14일",
+    "title_keywords": "교리와 성약 98~101편",
+    "section": "9월"
+  },
+  {
+    "start_date": "2025-09-01",
+    "end_date": "2025-09-07",
+    "week_range": "9월 1일~7일",
+    "title_keywords": "교리와 성약 94~97편",
+    "section": "9월"
+  },
+  {
+    "start_date": "2025-08-25",
+    "end_date": "2025-08-31",
+    "week_range": "8월 25일~31일",
+    "title_keywords": "교리와 성약 101~102편",
+    "section": "8월"
+  },
+  {
+    "start_date": "2025-08-18",
+    "end_date": "2025-08-24",
+    "week_range": "8월 18일~24일",
+    "title_keywords": "교리와 성약 99~100편",
+    "section": "8월"
+  },
+  {
+    "start_date": "2025-08-11",
+    "end_date": "2025-08-17",
+    "week_range": "8월 11일~17일",
+    "title_keywords": "교리와 성약 97~98편",
+    "section": "8월"
+  },
+  {
+    "start_date": "2025-08-04",
+    "end_date": "2025-08-10",
+    "week_range": "8월 4일~10일",
+    "title_keywords": "교리와 성약 95~96편",
+    "section": "8월"
+  },
+  {
+    "start_date": "2025-07-28",
+    "end_date": "2025-08-03",
+    "week_range": "7월 28일-8월 3일",
+    "title_keywords": "교리와 성약 84~86편",
+    "section": "7월"
+  },
+  {
+    "start_date": "2025-07-21",
+    "end_date": "2025-07-27",
+    "week_range": "7월 21일-27일",
+    "title_keywords": "교리와 성약 81~83편",
+    "section": "7월"
+  },
+  {
+    "start_date": "2025-07-14",
+    "end_date": "2025-07-20",
+    "week_range": "7월 14일-20일",
+    "title_keywords": "교리와 성약 77~80편",
+    "section": "7월"
+  },
+  {
+    "start_date": "2025-07-07",
+    "end_date": "2025-07-13",
+    "week_range": "7월 7일-13일",
+    "title_keywords": "교리와 성약 76편",
+    "section": "7월"
+  },
+  {
+    "start_date": "2025-06-30",
+    "end_date": "2025-07-06",
+    "week_range": "6월 30일-7월 6일",
+    "title_keywords": "교리와 성약 71~75편",
+    "section": "7월"
+  },
+  {
+    "start_date": "2025-06-23",
+    "end_date": "2025-06-29",
+    "week_range": "6월 23일~29일",
+    "title_keywords": "교리와 성약 67~70편",
+    "section": "6월"
+  },
+  {
+    "start_date": "2025-06-16",
+    "end_date": "2025-06-22",
+    "week_range": "6월 16일~22일",
+    "title_keywords": "교리와 성약 65~66편",
+    "section": "6월"
+  },
+  {
+    "start_date": "2025-06-09",
+    "end_date": "2025-06-15",
+    "week_range": "6월 9일~15일",
+    "title_keywords": "교리와 성약 63~64편",
+    "section": "6월"
+  },
+  {
+    "start_date": "2025-06-02",
+    "end_date": "2025-06-08",
+    "week_range": "6월 2일~8일",
+    "title_keywords": "교리와 성약 60~62편",
+    "section": "6월"
+  },
+  {
+    "start_date": "2025-05-26",
+    "end_date": "2025-06-01",
+    "week_range": "5월 26일~6월 1일",
+    "title_keywords": "교리와 성약 58~59편",
+    "section": "5월"
+  },
+  {
+    "start_date": "2025-05-19",
+    "end_date": "2025-05-25",
+    "week_range": "5월 19일~25일",
+    "title_keywords": "교리와 성약 56~57편",
+    "section": "5월"
+  },
+  {
+    "start_date": "2025-05-12",
+    "end_date": "2025-05-18",
+    "week_range": "5월 12일~18일",
+    "title_keywords": "교리와 성약 54~55편",
+    "section": "5월"
+  },
+  {
+    "start_date": "2025-05-05",
+    "end_date": "2025-05-11",
+    "week_range": "5월 5일~11일",
+    "title_keywords": "교리와 성약 51~53편",
+    "section": "5월"
+  },
+  {
+    "start_date": "2025-04-28",
+    "end_date": "2025-05-04",
+    "week_range": "4월 28일~5월 4일",
+    "title_keywords": "교리와 성약 49~50편",
+    "section": "4월"
+  },
+  {
+    "start_date": "2025-04-21",
+    "end_date": "2025-04-27",
+    "week_range": "4월 21일~27일",
+    "title_keywords": "교리와 성약 46~48편",
+    "section": "4월"
+  },
+  {
+    "start_date": "2025-04-14",
+    "end_date": "2025-04-20",
+    "week_range": "4월 14일~20일",
+    "title_keywords": "교리와 성약 43~45편",
+    "section": "4월"
+  },
+  {
+    "start_date": "2025-04-07",
+    "end_date": "2025-04-13",
+    "week_range": "4월 7일~13일",
+    "title_keywords": "교리와 성약 41~42편",
+    "section": "4월"
+  },
+  {
+    "start_date": "2025-03-31",
+    "end_date": "2025-04-06",
+    "week_range": "3월 31일~4월 6일",
+    "title_keywords": "교리와 성약 38~40편",
+    "section": "4월"
+  },
+  {
+    "start_date": "2025-03-24",
+    "end_date": "2025-03-30",
+    "week_range": "3월 24일~30일",
+    "title_keywords": "교리와 성약 37편",
+    "section": "3월"
+  },
+  {
+    "start_date": "2025-03-17",
+    "end_date": "2025-03-23",
+    "week_range": "3월 17일~23일",
+    "title_keywords": "교리와 성약 35~36편",
+    "section": "3월"
+  },
+  {
+    "start_date": "2025-03-10",
+    "end_date": "2025-03-16",
+    "week_range": "3월 10일~16일",
+    "title_keywords": "교리와 성약 33~34편",
+    "section": "3월"
+  },
+  {
+    "start_date": "2025-03-03",
+    "end_date": "2025-03-09",
+    "week_range": "3월 3일~9일",
+    "title_keywords": "교리와 성약 30~32편",
+    "section": "3월"
+  },
+  {
+    "start_date": "2025-02-24",
+    "end_date": "2025-03-02",
+    "week_range": "2월 24일~3월 2일",
+    "title_keywords": "교리와 성약 27~29편",
+    "section": "2월"
+  },
+  {
+    "start_date": "2025-02-17",
+    "end_date": "2025-02-23",
+    "week_range": "2월 17일~23일",
+    "title_keywords": "교리와 성약 12~17편",
+    "section": "2월",
+    "lesson_number": "08",
+    "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/08-doctrine-and-covenants-12-17?lang=kor"
+  },
+  {
+    "start_date": "2025-02-10",
+    "end_date": "2025-02-16",
+    "week_range": "2월 10일~16일",
+    "title_keywords": "교리와 성약 10~11편",
+    "section": "2월",
+    "lesson_number": "07",
+    "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/07-doctrine-and-covenants-10-11?lang=kor"
+  },
+  {
+    "start_date": "2025-02-03",
+    "end_date": "2025-02-09",
+    "week_range": "2월 3일~9일",
+    "title_keywords": "교리와 성약 3~5편",
+    "section": "2월",
+    "lesson_number": "05",
+    "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/05-doctrine-and-covenants-3-5?lang=kor"
+  },
+  {
+    "start_date": "2025-02-03",
+    "end_date": "2025-02-09",
+    "week_range": "2월 3일~9일",
+    "title_keywords": "교리와 성약 6~9편",
+    "section": "2월",
+    "lesson_number": "06",
+    "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/06-doctrine-and-covenants-6-9?lang=kor"
+  },
+  {
+    "start_date": "2025-01-27",
+    "end_date": "2025-02-02",
+    "week_range": "1월 27일~2월 2일",
+    "title_keywords": "교리와 성약 17~19편",
+    "section": "1월"
+  },
+  {
+    "start_date": "2025-01-20",
+    "end_date": "2025-01-26",
+    "week_range": "1월 20일~26일",
+    "title_keywords": "교리와 성약 2편",
+    "section": "1월",
+    "lesson_number": "04",
+    "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/04-doctrine-and-covenants-2?lang=kor"
+  },
+  {
+    "start_date": "2025-01-13",
+    "end_date": "2025-01-19",
+    "week_range": "1월 13일~19일",
+    "title_keywords": "교리와 성약 1~26편",
+    "section": "1월",
+    "lesson_number": "unknown",
+    "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/03-joseph-smith-history-01?lang=kor"
+  },
+  {
+    "start_date": "2025-01-06",
+    "end_date": "2025-01-12",
+    "week_range": "1월 6일~12일",
+    "title_keywords": "교리와 성약 1편",
+    "section": "1월",
+    "lesson_number": "02",
+    "url": "https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/02-doctrine-and-covenants-1?lang=kor"
+  },
+  {
+    "start_date": "2025-01-01",
+    "end_date": "2025-01-05",
+    "week_range": "1월 1일~5일",
+    "title_keywords": "교리와 성약 1~7편",
+    "section": "1월"
+  }
+]

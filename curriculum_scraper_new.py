@@ -655,4 +655,4 @@ class CurriculumScraper:
 if __name__ == "__main__":
     scraper = CurriculumScraper()
     current_curriculum = scraper.get_current_week_curriculum()
-    print("현재 주 공과:", json.dumps(current_curriculum, ensure_ascii=False, indent=2)) 
+    print("현재 주 공과:", json.dumps(current_curriculum, ensure_ascii=False, indent=2))

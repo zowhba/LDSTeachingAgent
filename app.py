@@ -12,6 +12,13 @@ import re
 # 환경변수 로드
 load_dotenv()
 
+# Markdown에서 ~ 기호를 올바르게 표시하기 위한 헬퍼 함수
+def escape_markdown_tilde(text):
+    """Markdown에서 ~ 기호를 이스케이프 처리하여 삭제선으로 인식되지 않도록 합니다."""
+    if text:
+        return text.replace('~', '\\~')
+    return text
+
 # Azure OpenAI 설정
 client = AzureOpenAI(
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
@@ -49,8 +56,54 @@ def init_db():
             )
         ''')
     
+    # 주차별 경전 범위 테이블
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS weekly_curriculum (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            year INTEGER NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            week_range TEXT NOT NULL,
+            scripture_range TEXT NOT NULL,
+            lesson_title TEXT,
+            lesson_url TEXT,
+            section TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(year, start_date, end_date)
+        )
+    ''')
+    
+    # 연도별 데이터 상태 추적 테이블
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS curriculum_status (
+            year INTEGER PRIMARY KEY,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            total_weeks INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'pending'
+        )
+    ''')
+    
+    # Q&A 테이블
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS curriculum_qa (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            week_range TEXT NOT NULL,
+            target_audience TEXT NOT NULL,
+            question TEXT NOT NULL,
+            answer TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     conn.commit()
     conn.close()
+
+# curriculum_scraper 모듈 import
+try:
+    from curriculum_scraper import CurriculumScraper
+except ImportError:
+    st.error("curriculum_scraper.py 파일을 찾을 수 없습니다.")
+    CurriculumScraper = None
 
 # 프롬프트 템플릿 로드
 def load_prompt_template(filename):
@@ -60,7 +113,8 @@ def load_prompt_template(filename):
 # 현재 주의 공과 정보 가져오기
 def get_current_week_curriculum():
     try:
-        from curriculum_scraper import CurriculumScraper
+        if CurriculumScraper is None:
+            return None
         scraper = CurriculumScraper()
         return scraper.get_current_week_curriculum()
     except Exception as e:
@@ -70,7 +124,8 @@ def get_current_week_curriculum():
 # 특정 주차의 공과 정보 가져오기
 def get_curriculum_by_week(selected_week):
     try:
-        from curriculum_scraper import CurriculumScraper
+        if CurriculumScraper is None:
+            return None
         scraper = CurriculumScraper()
         
         # 선택된 주차의 시작 날짜로 공과 정보 가져오기
@@ -83,7 +138,8 @@ def get_curriculum_by_week(selected_week):
 # 사용 가능한 주차 목록 가져오기
 def get_available_weeks():
     try:
-        from curriculum_scraper import CurriculumScraper
+        if CurriculumScraper is None:
+            return []
         scraper = CurriculumScraper()
         return scraper.get_available_weeks()
     except Exception as e:
@@ -129,14 +185,34 @@ def generate_chat_response(lesson_title, lesson_content, reference_material, use
         response = client.chat.completions.create(
             model=os.getenv("AZURE_OPENAI_DEPLOY_CURRICULUM"),
             messages=[
-                {"role": "system", "content": "당신은 후기성도 예수그리스도 교회의 공과 준비 도우미입니다."},
+                {"role": "system", "content": "당신은 후기성도 예수그리스도 교회의 공과 준비 도우미입니다. 답변은 반드시 600자 이내로 간결하게 작성해주세요."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=1000
+            max_tokens=500  # 600자 이내를 위해 토큰 수 조정
         )
         
-        return response.choices[0].message.content
+        response_text = response.choices[0].message.content
+        
+        # 응답이 600자를 초과하면 자르기
+        if len(response_text) > 600:
+            # 문장 단위로 자르기 (마지막 완전한 문장까지만)
+            truncated = response_text[:600]
+            # 마지막 문장의 끝을 찾아서 자르기 (한국어, 영어, 일본어 문장 종료 기호)
+            sentence_endings = ['.', '!', '?', '。', '！', '？']
+            cut_point = -1
+            for ending in sentence_endings:
+                pos = truncated.rfind(ending)
+                if pos > cut_point:
+                    cut_point = pos
+            
+            if cut_point > 500:  # 너무 짧게 자르지 않도록 (500자 이상이면)
+                response_text = truncated[:cut_point + 1]
+            else:
+                # 문장 끝을 찾지 못했거나 너무 짧으면 그냥 자르기
+                response_text = truncated.rstrip() + "..."
+        
+        return response_text
     except Exception as e:
         st.error(f"채팅 응답 생성 중 오류가 발생했습니다: {e}")
         return None
@@ -165,6 +241,31 @@ def save_material(lesson_title, target_audience, content, week_range):
     conn.commit()
     conn.close()
 
+# Q&A를 데이터베이스에 저장
+def save_qa(week_range, target_audience, question, answer):
+    conn = sqlite3.connect('curriculum_data.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO curriculum_qa (week_range, target_audience, question, answer)
+        VALUES (?, ?, ?, ?)
+    ''', (week_range, target_audience, question, answer))
+    conn.commit()
+    conn.close()
+
+# Q&A를 데이터베이스에서 가져오기
+def get_qa_list(week_range, target_audience):
+    conn = sqlite3.connect('curriculum_data.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT question, answer, created_at 
+        FROM curriculum_qa 
+        WHERE week_range = ? AND target_audience = ?
+        ORDER BY created_at DESC
+    ''', (week_range, target_audience))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
 # 메인 애플리케이션
 def main():
     st.set_page_config(
@@ -175,6 +276,34 @@ def main():
     
     # 데이터베이스 초기화
     init_db()
+    
+    # 백그라운드에서 현재 연도 주차별 데이터 초기화
+    try:
+        from weekly_curriculum_manager import WeeklyCurriculumManager
+        current_year = datetime.now().year
+        manager = WeeklyCurriculumManager()
+        
+        # 세션 상태에서 초기화 여부 확인
+        if f'data_initialized_{current_year}' not in st.session_state:
+            # 이미 DB에 데이터가 있는지 먼저 확인
+            if not manager.check_year_data_exists(current_year):
+                # 네트워크 없이도 기본 서비스가 가능하도록 함
+                try:
+                    with st.spinner(''):  # 스피너는 빈 문자열로 숨김
+                        manager.ensure_year_data(current_year)
+                except Exception as e:
+                    # 네트워크 오류 시에도 fallback 데이터로 계속 진행
+                    print(f"웹사이트 접근 실패, fallback 데이터 사용: {e}")
+                    if current_year == 2025:
+                        fallback_data = manager.get_fallback_data(current_year)
+                        if fallback_data:
+                            manager.save_weekly_data_to_db(fallback_data, current_year)
+            
+            st.session_state[f'data_initialized_{current_year}'] = True
+    except Exception as e:
+        print(f"초기 데이터 로딩 실패: {e}")
+        # 최종 fallback: 하드코딩된 함수들 사용
+        st.session_state[f'use_hardcoded_data'] = True
     
     st.title("📖 후기성도 예수그리스도 교회 신갈와드 공과 준비 도우미 v1.0")
     st.markdown("---")
@@ -259,6 +388,25 @@ def main():
                 help="공과 준비 자료를 생성할 대상 그룹을 선택하세요."
             )
             
+            # 과정 Q&A 섹션
+            st.markdown("---")
+            st.markdown("**💬 과정 Q&A**")
+            
+            # Q&A 목록 가져오기
+            qa_list = get_qa_list(selected_week['week_range'], target_audience)
+            
+            if qa_list:
+                st.caption(f"총 {len(qa_list)}개의 질문이 있습니다. 클릭하여 답변을 확인하세요.")
+                for idx, (question, answer, created_at) in enumerate(qa_list, 1):
+                    # 질문만 표시하고, 클릭하면 답변이 열리는 expander
+                    with st.expander(f"Q{idx}: {escape_markdown_tilde(question[:50])}{'...' if len(question) > 50 else ''}", expanded=False):
+                        st.markdown(f"**질문:** {escape_markdown_tilde(question)}")
+                        st.markdown("---")
+                        st.markdown(f"**답변:** {escape_markdown_tilde(answer)}")
+                        st.caption(f"작성일: {created_at}")
+            else:
+                st.info("아직 질문이 없습니다. 공과 자료에 대한 질문을 해보세요!")
+            
             # 생성 버튼
             if st.button("📝 공과 자료 생성", type="primary"):
                 if lesson_data:
@@ -294,17 +442,17 @@ def main():
                 # 주차 정보 표시
                 if 'week_info' in lesson_data:
                     week_info = lesson_data['week_info']
-                    st.markdown(f"**📅 주차:** {week_info['week_range']}")
-                    st.markdown(f"**📖 교재:** {week_info['title_keywords']}")
+                    st.markdown(f"**📅 주차:** {escape_markdown_tilde(week_info['week_range'])}")
+                    st.markdown(f"**📖 교재:** {escape_markdown_tilde(week_info['title_keywords'])}")
                 
-                st.markdown(f"**제목:** {lesson_data['title']}")
+                st.markdown(f"**제목:** {escape_markdown_tilde(lesson_data['title'])}")
                 
                 # 내용이 길면 접기/펼치기 기능 추가
                 if len(lesson_data['content']) > 500:
                     with st.expander("📄 공과 내용 보기", expanded=False):
-                        st.markdown(lesson_data['content'])
+                        st.markdown(escape_markdown_tilde(lesson_data['content']))
                 else:
-                    st.markdown(f"**내용:** {lesson_data['content']}")
+                    st.markdown(f"**내용:** {escape_markdown_tilde(lesson_data['content'])}")
                 
                 st.markdown(f"**🔗 원본 링크:** [교회 웹사이트]({lesson_data['url']})")
                 
@@ -351,6 +499,13 @@ def main():
                                 if response:
                                     st.markdown(response)
                                     st.session_state.chat_history.append({"role": "assistant", "content": response})
+                                    # 질문과 답변을 DB에 저장
+                                    save_qa(
+                                        selected_week['week_range'],
+                                        target_audience,
+                                        prompt,
+                                        response
+                                    )
                                 else:
                                     st.error("답변 생성에 실패했습니다.")
                 else:
