@@ -305,7 +305,7 @@ def main():
         # 최종 fallback: 하드코딩된 함수들 사용
         st.session_state[f'use_hardcoded_data'] = True
     
-    st.title("📖 후기성도 예수그리스도 교회 신갈와드 공과 준비 도우미 v1.0")
+    st.title("📖 후기성도 예수그리스도 교회 신갈와드 공과 준비 도우미 v1.1")
     st.markdown("---")
     
     # 사용 가능한 주차 목록 가져오기
@@ -334,24 +334,12 @@ def main():
                     current_week_index = i
                     break
             
-            # 현재 선택된 주차 이후의 주차들만 필터링
-            current_date = datetime.now()
-            filtered_weeks = []
-            filtered_indices = []
+            # 모든 주차 표시 (필터링 제거)
+            filtered_weeks = available_weeks
+            filtered_indices = list(range(len(available_weeks)))
             
-            for i, week in enumerate(available_weeks):
-                start_date = datetime.strptime(week['start_date'], '%Y-%m-%d')
-                # 현재 선택된 주차의 시작일 이후의 주차들만 포함
-                if start_date >= datetime.strptime(available_weeks[current_week_index]['start_date'], '%Y-%m-%d'):
-                    filtered_weeks.append(week)
-                    filtered_indices.append(i)
-            
-            # 필터링된 주차들 중에서 현재 주차의 인덱스 찾기
-            current_filtered_index = 0
-            for i, original_index in enumerate(filtered_indices):
-                if original_index == current_week_index:
-                    current_filtered_index = i
-                    break
+            # 현재 주차의 인덱스 찾기
+            current_filtered_index = current_week_index
             
             # 주차 선택 드롭다운 (필터링된 목록 사용)
             selected_filtered_index = st.selectbox(
@@ -419,6 +407,19 @@ def main():
                             st.success("저장된 자료를 불러왔습니다!")
                         else:
                             # 새로운 자료 생성
+                            # 원본 링크 URL을 사용해서 내용을 다시 가져오기
+                            if lesson_data.get("url"):
+                                try:
+                                    from curriculum_scraper import CurriculumScraper
+                                    scraper = CurriculumScraper()
+                                    # 원본 링크와 동일한 URL로 내용 가져오기
+                                    fresh_content = scraper.get_lesson_content(lesson_data["url"])
+                                    if fresh_content and len(fresh_content) > 50:
+                                        lesson_data["content"] = fresh_content
+                                        print(f"✅ 원본 링크에서 내용 가져오기 성공: {len(fresh_content)}자")
+                                except Exception as e:
+                                    print(f"⚠️ 원본 링크에서 내용 가져오기 실패: {e}")
+                            
                             generated_material = generate_curriculum_material(
                                 lesson_data["title"],
                                 lesson_data["content"],

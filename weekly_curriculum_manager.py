@@ -39,13 +39,80 @@ class WeeklyCurriculumManager:
             return True
         return False
     
+    def find_correct_url_pattern(self, year):
+        """연도에 맞는 올바른 URL 패턴을 동적으로 찾기"""
+        # 가능한 경전 종류들 (역사적 패턴 기반)
+        scripture_types = [
+            'old-testament',      # 2026년
+            'new-testament',      # 미래 연도
+            'book-of-mormon',     # 과거/미래 연도
+            'doctrine-and-covenants',  # 2025년
+            'pearl-of-great-price',    # 과거 연도
+        ]
+        
+        # 연도별 알려진 경전 매핑 (성능 최적화)
+        known_mappings = {
+            2025: 'doctrine-and-covenants',
+            2026: 'old-testament',
+        }
+        
+        # 알려진 매핑이 있으면 우선 사용
+        if year in known_mappings:
+            scripture_type = known_mappings[year]
+            url = f"https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-{scripture_type}-{year}?lang=kor"
+            # 먼저 알려진 패턴 시도
+            try:
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'ko-KR,ko;q=0.8,en-US;q=0.5,en;q=0.3',
+                }
+                session = requests.Session()
+                session.headers.update(headers)
+                response = session.get(url, timeout=15)
+                if response.status_code == 200:
+                    print(f"✅ 알려진 URL 패턴 성공: {scripture_type}")
+                    return url, scripture_type
+            except:
+                pass
+        
+        # 알려진 매핑이 없거나 실패한 경우, 모든 경전 종류 시도
+        print(f"🔍 {year}년 올바른 URL 패턴 찾는 중...")
+        for scripture_type in scripture_types:
+            url = f"https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-{scripture_type}-{year}?lang=kor"
+            try:
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'ko-KR,ko;q=0.8,en-US;q=0.5,en;q=0.3',
+                }
+                session = requests.Session()
+                session.headers.update(headers)
+                response = session.get(url, timeout=15)
+                if response.status_code == 200:
+                    print(f"✅ 올바른 URL 패턴 발견: {scripture_type}")
+                    return url, scripture_type
+            except:
+                continue
+        
+        return None, None
+    
     def extract_weekly_data_from_website(self, year):
         """웹사이트 목차 페이지에서 주차별 데이터를 추출"""
-        url = f"https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-{year}?lang=kor"
+        # 올바른 URL 패턴 찾기
+        url, scripture_type = self.find_correct_url_pattern(year)
+        
+        if not url:
+            print(f"❌ {year}년에 대한 올바른 URL 패턴을 찾을 수 없습니다.")
+            return self.get_fallback_data(year)
+        
+        # scripture_type을 인스턴스 변수로 저장하여 다른 메서드에서 사용
+        self.current_scripture_type = scripture_type
         
         # 재시도 설정
         max_retries = 3
         retry_delay = 2
+        response = None
         
         for attempt in range(max_retries):
             try:
@@ -97,12 +164,28 @@ class WeeklyCurriculumManager:
                 href = link.get('href', '')
                 text = link.get_text(strip=True)
                 
-                # 교리와 성약 관련 링크 필터링
-                if ('doctrine-and-covenants' in href and year == 2025) or \
-                   ('교리와' in text and ('편' in text or 'D&C' in text)):
+                # 링크 필터링 (연도 및 경전 종류 무관하게 처리)
+                # come-follow-me 링크 중 해당 연도가 포함되고, 날짜 패턴이 있는 링크 찾기
+                # 또는 텍스트에 날짜 패턴이 있는 링크
+                has_date_pattern = text and ('월' in text and ('일' in text or '~' in text or '-' in text or '\\' in text))
+                has_come_follow_me = 'come-follow-me' in href and str(year) in href
+                
+                if has_come_follow_me or has_date_pattern:
                     doctrine_links.append(link)
             
-            print(f"📊 교리와 성약 관련 링크 {len(doctrine_links)}개 발견")
+            print(f"📊 공과 관련 링크 {len(doctrine_links)}개 발견")
+            
+            # 중복 제거 (같은 href를 가진 링크 제거)
+            seen_hrefs = set()
+            unique_links = []
+            for link in doctrine_links:
+                href = link.get('href', '')
+                if href and href not in seen_hrefs:
+                    seen_hrefs.add(href)
+                    unique_links.append(link)
+            
+            doctrine_links = unique_links
+            print(f"📊 중복 제거 후 {len(doctrine_links)}개 링크")
             
             # 각 링크에서 날짜와 경전 범위 추출
             for link in doctrine_links:
@@ -111,10 +194,16 @@ class WeeklyCurriculumManager:
                     weekly_data.append(lesson_data)
                     print(f"✅ 추가: {lesson_data['week_range']} - {lesson_data['scripture_range']}")
             
-            # 만약 링크 방식으로 안 되면 텍스트 기반 파싱 시도
-            if not weekly_data:
-                print("🔄 텍스트 기반 파싱 시도...")
-                weekly_data = self.parse_from_text_content(soup, year)
+            # 만약 링크 방식으로 충분하지 않으면 텍스트 기반 파싱도 시도
+            if len(weekly_data) < 10:  # 10개 미만이면 텍스트 파싱도 시도
+                print(f"🔄 링크 파싱으로 {len(weekly_data)}개만 수집됨. 텍스트 기반 파싱 추가 시도...")
+                text_based_data = self.parse_from_text_content(soup, year)
+                # 중복 제거하면서 추가
+                existing_ranges = {d['week_range'] for d in weekly_data}
+                for data in text_based_data:
+                    if data['week_range'] not in existing_ranges:
+                        weekly_data.append(data)
+                        print(f"✅ 텍스트에서 추가: {data['week_range']} - {data['scripture_range']}")
             
             print(f"✅ {year}년 웹사이트에서 {len(weekly_data)}개 주차 데이터 추출 완료")
             return weekly_data
@@ -161,14 +250,28 @@ class WeeklyCurriculumManager:
         if not date_range:
             return None
         
-        # 경전 범위 추출 - 더 유연한 패턴
+        # 경전 범위 추출 - 모든 경전 종류를 지원하는 유연한 패턴
         scripture_patterns = [
+            # 교리와 성약 패턴
             r'교리와\s*성약\s*(\d+)\s*[~\-–\\]+\s*(\d+)\s*편',           # 교리와 성약 98~101편
             r'교리와\s*성약\s*(\d+)\s*편',                              # 교리와 성약 76편
             r'D&C\s*(\d+)\s*[~\-–]\s*(\d+)',                           # D&C 98-101
             r'D&C\s*(\d+)',                                            # D&C 76
+            # 구약전서 패턴 (2026년)
+            r'(창세기|출애굽기|레위기|민수기|신명기|여호수아|사사기|룻기|사무엘상|사무엘하|열왕기상|열왕기하|역대상|역대하|에스라|느헤미야|에스더|욥기|시편|잠언|전도서|이사야|예레미야|예레미야애가|에스겔|다니엘|호세아|요엘|아모스|오바댜|요나|미가|나훔|하박국|스바냐|학개|스가랴|말라기)\s*(\d+)\s*[~\-–]\s*(\d+)\s*장',  # 창세기 1~2장
+            r'(창세기|출애굽기|레위기|민수기|신명기|여호수아|사사기|룻기|사무엘상|사무엘하|열왕기상|열왕기하|역대상|역대하|에스라|느헤미야|에스더|욥기|시편|잠언|전도서|이사야|예레미야|예레미야애가|에스겔|다니엘|호세아|요엘|아모스|오바댜|요나|미가|나훔|하박국|스바냐|학개|스가랴|말라기)\s*(\d+)\s*장',  # 창세기 1장
+            r'(모세서|아브라함서)\s*(\d+)\s*[~\-–]\s*(\d+)\s*장',      # 모세서 1~2장
+            r'(모세서|아브라함서)\s*(\d+)\s*장',                        # 모세서 1장
+            # 모로나이서 등 (구약전서에 포함될 수 있음)
+            r'(모로나이서|니파이서|앨마서|히람서|에테르서|모사이야서)\s*(\d+)\s*[~\-–]\s*(\d+)',  # 모로나이서 1~2
+            r'(모로나이서|니파이서|앨마서|히람서|에테르서|모사이야서)\s*(\d+)',  # 모로나이서 1
+            r'([1-4]\s*니파이서|앨마서|히람서|에테르서|모사이야서)\s*(\d+)\s*[~\-–]\s*(\d+)',  # 1 니파이서 1~2
+            r'([1-4]\s*니파이서|앨마서|히람서|에테르서|모사이야서)\s*(\d+)',  # 1 니파이서 1
+            # 일반 패턴
             r'(\d+)\s*[~\-–\\]+\s*(\d+)\s*편',                         # 98~101편
             r'(\d+)\s*편',                                             # 76편
+            r'(\d+)\s*[~\-–\\]+\s*(\d+)\s*장',                         # 1~2장
+            r'(\d+)\s*장',                                             # 1장
         ]
         
         scripture_range = None
@@ -177,14 +280,47 @@ class WeeklyCurriculumManager:
             if match:
                 groups = match.groups()
                 if len(groups) == 2:
-                    scripture_range = f"교리와 성약 {groups[0]}~{groups[1]}편"
+                    scripture_range = f"{groups[0]} {groups[1]}"
                 elif len(groups) == 1:
-                    scripture_range = f"교리와 성약 {groups[0]}편"
+                    scripture_range = f"{groups[0]}"
+                elif len(groups) == 3:
+                    scripture_range = f"{groups[0]} {groups[1]}~{groups[2]}"
+                elif len(groups) == 4:
+                    scripture_range = f"{groups[0]} {groups[1]}~{groups[2]} {groups[3]}"
+                else:
+                    scripture_range = text  # 경전 정보를 텍스트 전체로 사용
                 print(f"📖 경전 범위 발견: {scripture_range}")
                 break
         
+        # 경전 범위가 없어도 날짜만 있으면 처리 (모든 연도에 적용)
         if not scripture_range:
-            return None
+            # 텍스트에서 날짜 범위를 제외한 나머지 부분을 경전 정보로 사용
+            # 날짜 패턴을 더 정확하게 제거 (공백 포함/미포함 모두 처리)
+            scripture_range = text
+            # 여러 날짜 패턴 시도
+            date_patterns_to_remove = [
+                date_range,  # 원본 날짜 범위
+                date_range.replace('~', '~'),  # ~ 유지
+                date_range.replace('~', '-'),  # -로 변환
+                date_range.replace('~', '–'),  # –로 변환
+            ]
+            # 공백 포함 버전도 추가
+            if ' ' in date_range:
+                date_patterns_to_remove.append(date_range.replace(' ', ''))
+            else:
+                # 공백 없는 버전에 공백 추가
+                spaced = re.sub(r'(\d{1,2})월(\d{1,2})일', r'\1월 \2일', date_range)
+                date_patterns_to_remove.append(spaced)
+            
+            for pattern in date_patterns_to_remove:
+                scripture_range = scripture_range.replace(pattern, '').strip()
+            
+            # 여러 경전이 나열된 경우 (예: "창세기 1~2장; 모세서 2~3장")
+            if ';' in scripture_range:
+                scripture_range = scripture_range.split(';')[0].strip()
+            if not scripture_range or len(scripture_range) < 2:
+                scripture_range = f"{year}년 공과"
+            print(f"📖 경전 범위 (기본값): {scripture_range}")
         
         # 날짜 범위를 datetime으로 변환
         start_date, end_date = self.parse_date_range(date_range, year)
@@ -251,20 +387,37 @@ class WeeklyCurriculumManager:
     
     def generate_url_from_scripture(self, scripture_range, year):
         """경전 범위에서 URL 생성"""
-        # 교리와 성약 98~101편 -> 98-101
-        match = re.search(r'(\d+)~(\d+)', scripture_range)
-        if match:
-            start_num = match.group(1)
-            end_num = match.group(2)
-            return f"{self.base_url}/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-{year}/36-doctrine-and-covenants-{start_num}-{end_num}?lang=kor"
+        # 저장된 scripture_type 사용 (없으면 기본값)
+        scripture_type = getattr(self, 'current_scripture_type', None)
         
-        # 단일 편인 경우
-        single_match = re.search(r'(\d+)편', scripture_range)
-        if single_match:
-            num = single_match.group(1)
-            return f"{self.base_url}/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-{year}/doctrine-and-covenants-{num}?lang=kor"
+        if not scripture_type:
+            # 알려진 연도 매핑 사용
+            known_mappings = {
+                2025: 'doctrine-and-covenants',
+                2026: 'old-testament',
+            }
+            scripture_type = known_mappings.get(year, 'doctrine-and-covenants')
         
-        return f"{self.base_url}/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-{year}?lang=kor"
+        # 기본 URL 생성
+        base_url_pattern = f"{self.base_url}/study/manual/come-follow-me-for-home-and-church-{scripture_type}-{year}"
+        
+        # 교리와 성약의 경우 특정 패턴 사용
+        if scripture_type == 'doctrine-and-covenants':
+            # 교리와 성약 98~101편 -> 98-101
+            match = re.search(r'(\d+)~(\d+)', scripture_range)
+            if match:
+                start_num = match.group(1)
+                end_num = match.group(2)
+                return f"{base_url_pattern}/36-doctrine-and-covenants-{start_num}-{end_num}?lang=kor"
+            
+            # 단일 편인 경우
+            single_match = re.search(r'(\d+)편', scripture_range)
+            if single_match:
+                num = single_match.group(1)
+                return f"{base_url_pattern}/doctrine-and-covenants-{num}?lang=kor"
+        
+        # 다른 경전 종류의 경우 기본 URL 반환 (실제 링크는 href에서 가져옴)
+        return f"{base_url_pattern}?lang=kor"
 
     def parse_lesson_link(self, link, year, month):
         """개별 공과 링크에서 주차 정보 파싱"""
@@ -431,7 +584,7 @@ class WeeklyCurriculumManager:
                    lesson_title, lesson_url, section
             FROM weekly_curriculum 
             WHERE year = ? 
-            ORDER BY start_date DESC
+            ORDER BY end_date ASC
         """, (year,))
         
         rows = cursor.fetchall()
@@ -466,9 +619,21 @@ class WeeklyCurriculumManager:
             weekly_data = self.get_fallback_data(year)
         
         if weekly_data:
-            return self.save_weekly_data_to_db(weekly_data, year)
+            success = self.save_weekly_data_to_db(weekly_data, year)
+            if success:
+                print(f"✅ {year}년 데이터 저장 완료: {len(weekly_data)}개 주차")
+            return success
         
-        print(f"❌ {year}년 데이터를 전혀 가져올 수 없습니다.")
+        # 2026년의 경우 더 자세한 안내 메시지
+        if year == 2026:
+            print(f"❌ {year}년 데이터를 전혀 가져올 수 없습니다.")
+            print(f"   가능한 원인:")
+            print(f"   1. 웹사이트에 {year}년 커리큘럼이 아직 게시되지 않았을 수 있습니다.")
+            print(f"   2. {year}년 커리큘럼 URL 패턴이 예상과 다를 수 있습니다.")
+            print(f"   3. 네트워크 연결 문제가 있을 수 있습니다.")
+            print(f"   수동으로 웹사이트를 확인하시거나, 나중에 다시 시도해주세요.")
+        else:
+            print(f"❌ {year}년 데이터를 전혀 가져올 수 없습니다.")
         return False
     
     def get_fallback_data(self, year):
@@ -538,6 +703,11 @@ class WeeklyCurriculumManager:
                     'section': '10월'
                 },
             ]
+        elif year == 2026:
+            print(f"⚠️ {year}년 fallback 데이터가 없습니다. 웹사이트에서 자동으로 가져오려고 시도합니다.")
+            # 2026년은 웹사이트에서 자동으로 가져오도록 빈 리스트 반환
+            # (ensure_year_data에서 웹사이트 스크래핑을 다시 시도함)
+            return []
         else:
             print(f"⚠️ {year}년 fallback 데이터가 없습니다.")
             return []
