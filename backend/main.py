@@ -281,11 +281,11 @@ async def generate_curriculum_material(request: GenerateMaterialRequest):
         response = client.chat.completions.create(
             model=os.getenv("AZURE_OPENAI_DEPLOY_CURRICULUM"),
             messages=[
-                {"role": "system", "content": "당신은 후기성도 예수그리스도 교회의 공과 준비 전문가입니다. 상세하고 깊이 있는 공과 자료를 작성해주세요."},
+                {"role": "system", "content": "당신은 후기성도 예수그리스도 교회의 공과 준비 전문가입니다. 상세하고 깊이 있는 공과 자료를 작성해주세요. 모든 핵심 교리를 동일한 깊이와 상세함으로 작성해야 합니다. 절대로 뒤의 교리들을 간략하게 처리하지 마세요."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=4000
+            max_tokens=8000
         )
         
         generated_material = response.choices[0].message.content
