@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공과 준비 도우미 | 후기성도 예수 그리스도 교회</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        /* 교회 공식 컬러 팔레트 */
+        --church-navy: #1e3a5f;
+        --church-navy-dark: #152a45;
+        --church-navy-light: #2d4a6f;
+        --church-gold: #b8860b;
+        --church-gold-light: #d4a84b;
+        --church-cream: #f8f6f3;
+        --church-warm-white: #fefefe;
+        --church-gray: #5a5a5a;
+        --church-light-gray: #e8e8e8;
+        --church-border: #d1d5db;
+      }
+
+      * {
+        font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      body {
+        background-color: var(--church-cream);
+        color: var(--church-gray);
+      }
+
+      /* 커스텀 스크롤바 */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--church-cream);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--church-navy);
+        border-radius: 3px;
+        opacity: 0.5;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--church-navy-dark);
+      }
+
+      /* 마크다운 스타일 - 교회 분위기 */
+      .markdown-content h2 {
+        font-size: 1.375rem;
+        font-weight: 600;
+        margin-top: 1.75rem;
+        margin-bottom: 0.875rem;
+        color: var(--church-navy);
+        border-bottom: 1px solid var(--church-gold);
+        padding-bottom: 0.5rem;
+      }
+      .markdown-content h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-top: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--church-navy-light);
+      }
+      .markdown-content p {
+        margin-bottom: 0.875rem;
+        line-height: 1.8;
+        color: var(--church-gray);
+      }
+      .markdown-content ul, .markdown-content ol {
+        margin-left: 1.5rem;
+        margin-bottom: 0.875rem;
+      }
+      .markdown-content li {
+        margin-bottom: 0.375rem;
+        line-height: 1.7;
+      }
+      .markdown-content a {
+        color: var(--church-navy);
+        text-decoration: none;
+        border-bottom: 1px solid var(--church-gold);
+        transition: all 0.2s;
+      }
+      .markdown-content a:hover {
+        color: var(--church-gold);
+      }
+      .markdown-content blockquote {
+        border-left: 3px solid var(--church-gold);
+        padding-left: 1rem;
+        margin: 1.25rem 0;
+        background-color: rgba(184, 134, 11, 0.05);
+        padding: 1rem 1.25rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+        font-style: italic;
+        color: var(--church-navy);
+      }
+      .markdown-content code {
+        background-color: var(--church-light-gray);
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+      }
+      .markdown-content strong {
+        color: var(--church-navy);
+        font-weight: 600;
+      }
+
+      /* 로딩 애니메이션 */
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .4; }
+      }
+      .animate-pulse-slow {
+        animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      /* 버튼 스타일 */
+      .btn-church-primary {
+        background-color: var(--church-navy);
+        color: white;
+        transition: all 0.3s ease;
+      }
+      .btn-church-primary:hover {
+        background-color: var(--church-navy-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+      }
+      .btn-church-primary:disabled {
+        background-color: var(--church-light-gray);
+        color: var(--church-gray);
+        transform: none;
+        box-shadow: none;
+      }
+
+      .btn-church-secondary {
+        background-color: transparent;
+        color: var(--church-navy);
+        border: 1px solid var(--church-navy);
+        transition: all 0.3s ease;
+      }
+      .btn-church-secondary:hover {
+        background-color: var(--church-navy);
+        color: white;
+      }
+
+      /* 채팅 버블 */
+      .chat-bubble-user {
+        background: linear-gradient(135deg, var(--church-navy) 0%, var(--church-navy-light) 100%);
+        color: white;
+        border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+      }
+      .chat-bubble-assistant {
+        background: white;
+        color: var(--church-gray);
+        border: 1px solid var(--church-light-gray);
+        border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+      }
+
+      /* 카드 스타일 */
+      .card-church {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+      }
+
+      /* 입력 필드 */
+      .input-church {
+        border: 1px solid var(--church-border);
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+      }
+      .input-church:focus {
+        border-color: var(--church-navy);
+        box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+        outline: none;
+      }
+
+      /* 선택된 상태 */
+      .selected-church {
+        background-color: var(--church-navy);
+        color: white;
+      }
+
+      /* 골드 악센트 */
+      .accent-gold {
+        color: var(--church-gold);
+      }
+      .border-gold {
+        border-color: var(--church-gold);
+      }
+      .bg-gold-light {
+        background-color: rgba(184, 134, 11, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

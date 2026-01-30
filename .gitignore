@@ -13,8 +13,13 @@ __pycache__/
 
 # 가상환경
 venv/
+.venv/
 env/
 ENV/
+
+# Node.js
+node_modules/
+frontend/node_modules/
 
 # IDE 설정
 .vscode/
