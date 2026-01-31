@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: 'lds-teaching-agent'  # 실제 Azure Web App 이름으로 변경
+  AZURE_WEBAPP_NAME: 'LDSTeaching'  # 실제 Azure Web App 이름으로 변경
   PYTHON_VERSION: '3.11'
   NODE_VERSION: '18'
 
