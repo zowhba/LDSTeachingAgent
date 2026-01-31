@@ -1,10 +1,4 @@
 # Azure Web App 배포 워크플로우
-# 
-# 사용 전 설정:
-# 1. Azure Portal에서 Web App 생성 (Python 3.11, Linux)
-# 2. GitHub Secrets에 추가:
-#    - AZURE_WEBAPP_PUBLISH_PROFILE: Azure Portal > Web App > Deployment Center > Manage publish profile
-# 3. 아래 env 섹션의 AZURE_WEBAPP_NAME을 실제 앱 이름으로 변경
 
 name: Deploy to Azure Web App
 
@@ -15,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: 'LDSTeaching'  # 실제 Azure Web App 이름으로 변경
+  AZURE_WEBAPP_NAME: 'LDSTeaching'
   PYTHON_VERSION: '3.11'
   NODE_VERSION: '18'
 
@@ -31,8 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
 
       - name: Build frontend
         run: |
@@ -44,29 +36,39 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: requirements_azure.txt
 
-      - name: Install Python dependencies
+      - name: Create virtual environment and install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements_azure.txt
 
       - name: Prepare deployment package
         run: |
-          # 배포에 필요한 파일만 복사
-          mkdir -p deploy_package/frontend
+          # 루트에 모든 파일 배치 (Azure 기본 구조)
+          mkdir -p deploy_package/frontend/dist
+          mkdir -p deploy_package/prompts
+          
+          # Python 파일
           cp app_azure.py deploy_package/
-          cp requirements_azure.txt deploy_package/requirements.txt
-          cp startup.sh deploy_package/
-          cp -r prompts deploy_package/
-          cp -r frontend/dist deploy_package/frontend/
           cp curriculum_scraper.py deploy_package/
           cp weekly_curriculum_manager.py deploy_package/
           
-          # .deployment 파일 생성
-          echo "[config]" > deploy_package/.deployment
-          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=true" >> deploy_package/.deployment
+          # requirements.txt (이름 변경)
+          cp requirements_azure.txt deploy_package/requirements.txt
+          
+          # 프론트엔드 빌드 결과
+          cp -r frontend/dist/* deploy_package/frontend/dist/
+          
+          # 프롬프트 템플릿
+          cp -r prompts/* deploy_package/prompts/
+          
+          # 가상환경
+          cp -r antenv deploy_package/
+          
+          # startup.txt 생성 (Azure가 인식하는 형식)
+          echo "gunicorn --bind=0.0.0.0:8000 --workers=2 --timeout=600 --worker-class=uvicorn.workers.UvicornWorker app_azure:app" > deploy_package/startup.txt
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
