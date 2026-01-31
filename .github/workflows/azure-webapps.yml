@@ -55,12 +55,12 @@ jobs:
       - name: Prepare deployment package
         run: |
           # 배포에 필요한 파일만 복사
-          mkdir -p deploy_package
+          mkdir -p deploy_package/frontend
           cp app_azure.py deploy_package/
           cp requirements_azure.txt deploy_package/requirements.txt
           cp startup.sh deploy_package/
           cp -r prompts deploy_package/
-          cp -r frontend/dist deploy_package/frontend/dist
+          cp -r frontend/dist deploy_package/frontend/
           cp curriculum_scraper.py deploy_package/
           cp weekly_curriculum_manager.py deploy_package/
           
