@@ -23,21 +23,52 @@ class WeeklyCurriculumManager:
         
     def check_year_data_exists(self, year):
         """해당 연도의 데이터가 DB에 있는지 확인"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT status, total_weeks, last_updated 
-            FROM curriculum_status 
-            WHERE year = ?
-        """, (year,))
-        
-        result = cursor.fetchone()
-        conn.close()
-        
-        if result and result[0] == 'completed' and result[1] > 0:
-            return True
-        return False
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # 테이블이 없으면 먼저 생성
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS curriculum_status (
+                    year INTEGER PRIMARY KEY,
+                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    total_weeks INTEGER DEFAULT 0,
+                    status TEXT DEFAULT 'pending'
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS weekly_curriculum (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    year INTEGER NOT NULL,
+                    start_date TEXT NOT NULL,
+                    end_date TEXT NOT NULL,
+                    week_range TEXT NOT NULL,
+                    scripture_range TEXT NOT NULL,
+                    lesson_title TEXT,
+                    lesson_url TEXT,
+                    section TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(year, start_date, end_date)
+                )
+            ''')
+            conn.commit()
+            
+            cursor.execute("""
+                SELECT status, total_weeks, last_updated 
+                FROM curriculum_status 
+                WHERE year = ?
+            """, (year,))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result and result[0] == 'completed' and result[1] > 0:
+                return True
+            return False
+        except Exception as e:
+            print(f"연도 데이터 확인 중 오류: {e}")
+            return False
     
     def find_correct_url_pattern(self, year):
         """연도에 맞는 올바른 URL 패턴을 동적으로 찾기"""

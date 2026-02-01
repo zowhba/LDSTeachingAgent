@@ -524,6 +524,112 @@ class CurriculumScraper:
             }
         ]
 
+    def get_week_mapping_2026(self):
+        """2026년 주차별 공과 매핑 정보 (구약전서)"""
+        return [
+            # 1월
+            {
+                'start_date': '2026-01-01',
+                'end_date': '2026-01-04',
+                'week_range': '1월 1일-4일',
+                'title_keywords': '모세서 1편',
+                'section': '1월'
+            },
+            {
+                'start_date': '2026-01-05',
+                'end_date': '2026-01-11',
+                'week_range': '1월 5일-11일',
+                'title_keywords': '모세서 2-3편; 창세기 1-2편',
+                'section': '1월'
+            },
+            {
+                'start_date': '2026-01-12',
+                'end_date': '2026-01-18',
+                'week_range': '1월 12일-18일',
+                'title_keywords': '모세서 4편; 창세기 3편',
+                'section': '1월'
+            },
+            {
+                'start_date': '2026-01-19',
+                'end_date': '2026-01-25',
+                'week_range': '1월 19일-25일',
+                'title_keywords': '모세서 5-6편; 창세기 4편',
+                'section': '1월'
+            },
+            {
+                'start_date': '2026-01-26',
+                'end_date': '2026-02-01',
+                'week_range': '1월 26일-2월 1일',
+                'title_keywords': '모세서 7편',
+                'section': '1월'
+            },
+            # 2월
+            {
+                'start_date': '2026-02-02',
+                'end_date': '2026-02-08',
+                'week_range': '2월 2일-8일',
+                'title_keywords': '모세서 8편; 창세기 5-9편',
+                'section': '2월'
+            },
+            {
+                'start_date': '2026-02-09',
+                'end_date': '2026-02-15',
+                'week_range': '2월 9일-15일',
+                'title_keywords': '창세기 10-11편',
+                'section': '2월'
+            },
+            {
+                'start_date': '2026-02-16',
+                'end_date': '2026-02-22',
+                'week_range': '2월 16일-22일',
+                'title_keywords': '창세기 12-14편; 아브라함 1-2편',
+                'section': '2월'
+            },
+            {
+                'start_date': '2026-02-23',
+                'end_date': '2026-03-01',
+                'week_range': '2월 23일-3월 1일',
+                'title_keywords': '창세기 15-17편; 아브라함 3편',
+                'section': '2월'
+            },
+            # 3월
+            {
+                'start_date': '2026-03-02',
+                'end_date': '2026-03-08',
+                'week_range': '3월 2일-8일',
+                'title_keywords': '창세기 18-19편',
+                'section': '3월'
+            },
+            {
+                'start_date': '2026-03-09',
+                'end_date': '2026-03-15',
+                'week_range': '3월 9일-15일',
+                'title_keywords': '창세기 20-22편',
+                'section': '3월'
+            },
+            {
+                'start_date': '2026-03-16',
+                'end_date': '2026-03-22',
+                'week_range': '3월 16일-22일',
+                'title_keywords': '창세기 23-24편',
+                'section': '3월'
+            },
+            {
+                'start_date': '2026-03-23',
+                'end_date': '2026-03-29',
+                'week_range': '3월 23일-29일',
+                'title_keywords': '창세기 25-27편',
+                'section': '3월'
+            },
+            {
+                'start_date': '2026-03-30',
+                'end_date': '2026-04-05',
+                'week_range': '3월 30일-4월 5일',
+                'title_keywords': '창세기 28-31편',
+                'section': '3월'
+            },
+        ]
+
     def generate_direct_url(self, week_info, year=None):
         """주차 정보를 바탕으로 직접 URL 생성"""
         if year is None:
@@ -666,9 +772,13 @@ class CurriculumScraper:
     def get_week_mapping_from_db(self, year):
         """DB에서 주차별 매핑 데이터를 가져옵니다."""
         try:
+            import tempfile
+            import os
             from weekly_curriculum_manager import WeeklyCurriculumManager
             
-            manager = WeeklyCurriculumManager()
+            # 임시 DB 경로 사용 (Azure Table Storage가 아닌 커리큘럼 캐시용)
+            temp_db = os.path.join(tempfile.gettempdir(), 'curriculum_cache.db')
+            manager = WeeklyCurriculumManager(temp_db)
             
             # 해당 연도 데이터가 DB에 있는지 확인하고, 없으면 웹사이트에서 가져와서 저장
             manager.ensure_year_data(year)
@@ -678,9 +788,11 @@ class CurriculumScraper:
             
         except Exception as e:
             print(f"DB에서 주차 매핑 가져오기 실패: {e}")
-            # fallback으로 하드코딩된 2025년 데이터 사용
+            # fallback으로 하드코딩된 데이터 사용
             if year == 2025:
                 return self.get_week_mapping_2025()
+            elif year == 2026:
+                return self.get_week_mapping_2026()
             return []
 
     def get_weekly_curriculum_list(self):
