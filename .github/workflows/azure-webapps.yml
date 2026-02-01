@@ -4,10 +4,11 @@
 name: Deploy to Azure Web App
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  # push 자동 배포 비활성화 - 수동 배포만 사용
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:  # GitHub Actions 탭에서 수동 실행
 
 env:
   AZURE_WEBAPP_NAME: 'LDSTeaching'
