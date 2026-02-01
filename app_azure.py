@@ -1,6 +1,7 @@
 """
 LDS Teaching Agent - Azure Web App 배포용 통합 서버
 FastAPI 백엔드 + Vue.js 정적 파일 서빙
+Azure Table Storage를 사용한 영구 데이터 저장
 """
 
 from fastapi import FastAPI, HTTPException, Request
@@ -10,12 +11,16 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
-import sqlite3
 import os
 import sys
+import hashlib
 
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+
+# Azure Table Storage
+from azure.data.tables import TableServiceClient, TableClient
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 
 # 환경변수 로드
 load_dotenv()
@@ -24,7 +29,7 @@ load_dotenv()
 app = FastAPI(
     title="LDS Teaching Agent API",
     description="후기성도 예수그리스도 교회 공과 준비 도우미 API",
-    version="2.0"
+    version="2.1"
 )
 
 # CORS 설정
@@ -43,8 +48,55 @@ client = AzureOpenAI(
     api_version="2024-02-15-preview"
 )
 
-# 데이터베이스 경로
-DB_PATH = os.path.join(os.path.dirname(__file__), 'curriculum_data.db')
+# Azure Table Storage 설정
+AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+
+# 테이블 이름
+TABLE_MATERIALS = "CurriculumMaterials"
+TABLE_QA = "CurriculumQA"
+TABLE_WEEKLY = "WeeklyCurriculum"
+
+
+def get_table_client(table_name: str) -> TableClient:
+    """테이블 클라이언트 반환"""
+    if not AZURE_STORAGE_CONNECTION_STRING:
+        raise HTTPException(status_code=500, detail="Azure Storage 연결 문자열이 설정되지 않았습니다.")
+    
+    service_client = TableServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
+    return service_client.get_table_client(table_name)
+
+
+def init_tables():
+    """테이블 초기화 (없으면 생성)"""
+    if not AZURE_STORAGE_CONNECTION_STRING:
+        print("경고: Azure Storage 연결 문자열이 없습니다. 로컬 모드로 실행됩니다.")
+        return
+    
+    try:
+        service_client = TableServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
+        
+        for table_name in [TABLE_MATERIALS, TABLE_QA, TABLE_WEEKLY]:
+            try:
+                service_client.create_table(table_name)
+                print(f"테이블 생성됨: {table_name}")
+            except ResourceExistsError:
+                print(f"테이블 이미 존재: {table_name}")
+    except Exception as e:
+        print(f"테이블 초기화 실패: {e}")
+
+
+def generate_row_key() -> str:
+    """고유 RowKey 생성"""
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+    return timestamp
+
+
+def create_partition_key(week_range: str, target_audience: str) -> str:
+    """PartitionKey 생성 (주차_대상그룹)"""
+    # 특수문자 제거 및 안전한 키 생성
+    safe_week = week_range.replace(" ", "_").replace("~", "-").replace("/", "-")
+    safe_audience = target_audience
+    return f"{safe_week}_{safe_audience}"
 
 
 # === Pydantic 모델들 ===
@@ -87,13 +139,6 @@ class QAItem(BaseModel):
 
 
 # === 유틸리티 함수들 ===
-def get_db_connection():
-    """데이터베이스 연결 반환"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
 def load_prompt_template(filename):
     """프롬프트 템플릿 로드"""
     prompts_dir = os.path.join(os.path.dirname(__file__), 'prompts')
@@ -101,89 +146,26 @@ def load_prompt_template(filename):
         return f.read()
 
 
-def init_db():
-    """데이터베이스 초기화"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='curriculum_materials'")
-    table_exists = cursor.fetchone()
-    
-    if table_exists:
-        cursor.execute("PRAGMA table_info(curriculum_materials)")
-        columns = [column[1] for column in cursor.fetchall()]
-        
-        if 'week_range' not in columns:
-            cursor.execute('ALTER TABLE curriculum_materials ADD COLUMN week_range TEXT')
-    else:
-        cursor.execute('''
-            CREATE TABLE curriculum_materials (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                lesson_title TEXT,
-                target_audience TEXT,
-                content TEXT,
-                week_range TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-    
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS weekly_curriculum (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            year INTEGER NOT NULL,
-            start_date TEXT NOT NULL,
-            end_date TEXT NOT NULL,
-            week_range TEXT NOT NULL,
-            scripture_range TEXT NOT NULL,
-            lesson_title TEXT,
-            lesson_url TEXT,
-            section TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(year, start_date, end_date)
-        )
-    ''')
-    
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS curriculum_status (
-            year INTEGER PRIMARY KEY,
-            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            total_weeks INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'pending'
-        )
-    ''')
-    
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS curriculum_qa (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            week_range TEXT NOT NULL,
-            target_audience TEXT NOT NULL,
-            question TEXT NOT NULL,
-            answer TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    conn.commit()
-    conn.close()
-
-
 # === API 엔드포인트들 ===
 @app.on_event("startup")
 async def startup_event():
-    """앱 시작 시 데이터베이스 초기화"""
-    init_db()
+    """앱 시작 시 테이블 초기화"""
+    init_tables()
     
     try:
         from weekly_curriculum_manager import WeeklyCurriculumManager
         current_year = datetime.now().year
-        manager = WeeklyCurriculumManager(DB_PATH)
+        # 임시 SQLite 사용 (커리큘럼 스크래핑용)
+        import tempfile
+        temp_db = os.path.join(tempfile.gettempdir(), 'curriculum_temp.db')
+        manager = WeeklyCurriculumManager(temp_db)
         
         if not manager.check_year_data_exists(current_year):
             try:
                 manager.ensure_year_data(current_year)
             except Exception as e:
                 print(f"웹사이트 접근 실패, fallback 데이터 사용: {e}")
-                if current_year == 2025:
+                if current_year == 2025 or current_year == 2026:
                     fallback_data = manager.get_fallback_data(current_year)
                     if fallback_data:
                         manager.save_weekly_data_to_db(fallback_data, current_year)
@@ -194,7 +176,12 @@ async def startup_event():
 @app.get("/api/health")
 async def health_check():
     """헬스 체크"""
-    return {"status": "healthy", "message": "LDS Teaching Agent API v2.0"}
+    storage_status = "connected" if AZURE_STORAGE_CONNECTION_STRING else "not configured"
+    return {
+        "status": "healthy", 
+        "message": "LDS Teaching Agent API v2.1",
+        "storage": storage_status
+    }
 
 
 @app.get("/api/weeks", response_model=List[WeekInfo])
@@ -250,19 +237,22 @@ async def get_curriculum_by_week(week_data: dict):
 async def generate_curriculum_material(request: GenerateMaterialRequest):
     """공과 자료 생성"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT content FROM curriculum_materials 
-            WHERE lesson_title = ? AND target_audience = ? AND week_range = ?
-            ORDER BY created_at DESC LIMIT 1
-        ''', (request.lesson_title, request.target_audience, request.week_range))
-        result = cursor.fetchone()
-        conn.close()
+        # Azure Table Storage에서 캐시 확인
+        if AZURE_STORAGE_CONNECTION_STRING:
+            try:
+                table_client = get_table_client(TABLE_MATERIALS)
+                partition_key = create_partition_key(request.week_range, request.target_audience)
+                
+                # 제목으로 검색
+                filter_query = f"PartitionKey eq '{partition_key}' and LessonTitle eq '{request.lesson_title}'"
+                entities = list(table_client.query_entities(filter_query, results_per_page=1))
+                
+                if entities:
+                    return {"material": entities[0]['Content'], "is_cached": True}
+            except Exception as e:
+                print(f"캐시 조회 실패: {e}")
         
-        if result:
-            return {"material": result[0], "is_cached": True}
-        
+        # AI로 새 자료 생성
         template = load_prompt_template('curriculum_template.txt')
         prompt = template.format(
             target_audience=request.target_audience,
@@ -282,14 +272,25 @@ async def generate_curriculum_material(request: GenerateMaterialRequest):
         
         generated_material = response.choices[0].message.content
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO curriculum_materials (lesson_title, target_audience, content, week_range)
-            VALUES (?, ?, ?, ?)
-        ''', (request.lesson_title, request.target_audience, generated_material, request.week_range))
-        conn.commit()
-        conn.close()
+        # Azure Table Storage에 저장
+        if AZURE_STORAGE_CONNECTION_STRING:
+            try:
+                table_client = get_table_client(TABLE_MATERIALS)
+                partition_key = create_partition_key(request.week_range, request.target_audience)
+                
+                entity = {
+                    "PartitionKey": partition_key,
+                    "RowKey": generate_row_key(),
+                    "WeekRange": request.week_range,
+                    "TargetAudience": request.target_audience,
+                    "LessonTitle": request.lesson_title,
+                    "Content": generated_material,
+                    "CreatedAt": datetime.utcnow().isoformat()
+                }
+                table_client.create_entity(entity)
+                print(f"교재 저장 완료: {request.lesson_title}")
+            except Exception as e:
+                print(f"교재 저장 실패: {e}")
         
         return {"material": generated_material, "is_cached": False}
         
@@ -335,14 +336,25 @@ async def chat_response(request: ChatRequest):
             else:
                 response_text = truncated.rstrip() + "..."
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO curriculum_qa (week_range, target_audience, question, answer)
-            VALUES (?, ?, ?, ?)
-        ''', (request.week_range, request.target_audience, request.user_question, response_text))
-        conn.commit()
-        conn.close()
+        # Azure Table Storage에 Q&A 저장
+        if AZURE_STORAGE_CONNECTION_STRING:
+            try:
+                table_client = get_table_client(TABLE_QA)
+                partition_key = create_partition_key(request.week_range, request.target_audience)
+                
+                entity = {
+                    "PartitionKey": partition_key,
+                    "RowKey": generate_row_key(),
+                    "WeekRange": request.week_range,
+                    "TargetAudience": request.target_audience,
+                    "Question": request.user_question,
+                    "Answer": response_text,
+                    "CreatedAt": datetime.utcnow().isoformat()
+                }
+                table_client.create_entity(entity)
+                print(f"Q&A 저장 완료")
+            except Exception as e:
+                print(f"Q&A 저장 실패: {e}")
         
         return {"answer": response_text}
         
@@ -354,21 +366,31 @@ async def chat_response(request: ChatRequest):
 async def get_qa_list(week_range: str, target_audience: str):
     """Q&A 목록 반환"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT question, answer, created_at 
-            FROM curriculum_qa 
-            WHERE week_range = ? AND target_audience = ?
-            ORDER BY created_at DESC
-        ''', (week_range, target_audience))
-        results = cursor.fetchall()
-        conn.close()
+        if not AZURE_STORAGE_CONNECTION_STRING:
+            return []
         
-        return [{"question": r[0], "answer": r[1], "created_at": r[2]} for r in results]
+        table_client = get_table_client(TABLE_QA)
+        partition_key = create_partition_key(week_range, target_audience)
+        
+        # PartitionKey로 필터링
+        filter_query = f"PartitionKey eq '{partition_key}'"
+        entities = list(table_client.query_entities(filter_query))
+        
+        # 최신순 정렬
+        entities.sort(key=lambda x: x.get('CreatedAt', ''), reverse=True)
+        
+        return [
+            {
+                "question": e.get('Question', ''),
+                "answer": e.get('Answer', ''),
+                "created_at": e.get('CreatedAt', '')
+            }
+            for e in entities
+        ]
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Q&A 조회 실패: {e}")
+        return []
 
 
 @app.get("/api/target-audiences")

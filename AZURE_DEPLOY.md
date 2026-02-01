@@ -26,7 +26,19 @@
 
 4. **검토 + 만들기** > **만들기**
 
-#### 2단계: 환경 변수 설정
+#### 2단계: Azure Storage 계정 생성 (영구 데이터 저장용)
+
+1. [Azure Portal](https://portal.azure.com) 접속
+2. **리소스 만들기** > **스토리지 계정** 선택
+3. 설정:
+   - **스토리지 계정 이름**: `ldsteachingstorage` (고유해야 함)
+   - **지역**: Web App과 동일한 지역
+   - **성능**: Standard
+   - **중복성**: LRS (가장 저렴)
+4. **검토 + 만들기** > **만들기**
+5. 생성된 스토리지 계정 > **액세스 키** > **연결 문자열** 복사
+
+#### 3단계: 환경 변수 설정
 
 1. 생성된 Web App으로 이동
 2. **설정** > **구성** > **애플리케이션 설정**
@@ -37,10 +49,11 @@
 | `AZURE_OPENAI_ENDPOINT` | Azure OpenAI 엔드포인트 URL |
 | `AZURE_OPENAI_API_KEY` | Azure OpenAI API 키 |
 | `AZURE_OPENAI_DEPLOY_CURRICULUM` | 배포 이름 (예: gpt-4) |
+| `AZURE_STORAGE_CONNECTION_STRING` | Azure Storage 연결 문자열 |
 
 4. **저장**
 
-#### 3단계: 시작 명령 설정
+#### 4단계: 시작 명령 설정
 
 1. **설정** > **구성** > **일반 설정**
 2. **시작 명령**에 다음 입력:
@@ -49,7 +62,7 @@
    ```
 3. **저장**
 
-#### 4단계: GitHub 연결 및 자동 배포
+#### 5단계: GitHub 연결 및 자동 배포
 
 1. **배포 센터** > **GitHub** 선택
 2. GitHub 계정 연결 및 리포지토리 선택
@@ -174,3 +187,4 @@ LDSTeachingAgent/
 - **B1 플랜**: 약 $13/월 (기본 권장)
 - **F1 플랜**: 무료 (개발/테스트용, 제한 있음)
 - **Azure OpenAI**: 사용량에 따라 별도 과금
+- **Azure Table Storage**: GB당 약 $0.05/월 (매우 저렴, 거의 무료 수준)
