@@ -191,26 +191,23 @@ async def startup_event():
     print("🚀 LDS Teaching Agent API 시작 중 (Azure Mode)")
     init_azure_tables()
     
-    try:
-        from weekly_curriculum_manager import WeeklyCurriculumManager
-        current_year = datetime.now().year
-        # Manager 내부적으로 Azure를 우선 사용하도록 수정됨
-        manager = WeeklyCurriculumManager()
-        if not manager.check_year_data_exists(current_year):
-            print(f"🔄 {current_year}년 커리큘럼 데이터 초기화 중...")
-            manager.ensure_year_data(current_year)
-    except Exception as e:
-        print(f"❌ 초기 데이터 로딩 실패: {e}")
+    def background_init():
+        try:
+            from weekly_curriculum_manager import WeeklyCurriculumManager
+            current_year = datetime.now().year
+            manager = WeeklyCurriculumManager()
+            if not manager.check_year_data_exists(current_year):
+                print(f"🔄 {current_year}년 커리큘럼 데이터 보충 중 (백그라운드)...")
+                manager.ensure_year_data(current_year)
+        except Exception as e:
+            print(f"❌ 초기 데이터 로딩 실패: {e}")
+            
+    import threading
+    t = threading.Thread(target=background_init, daemon=True)
+    t.start()
 
 
-@app.get("/")
-async def root():
-    """API 상태 확인"""
-    return {
-        "status": "running", 
-        "message": "LDS Teaching Agent API v2.5",
-        "storage": "azure_table_storage"
-    }
+
 
 
 @app.get("/api/health")
