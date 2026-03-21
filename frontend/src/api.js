@@ -9,7 +9,7 @@ const API_BASE_URL = '/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 120000, // 2분 타임아웃 (AI 생성에 시간이 걸릴 수 있음)
+  timeout: 300000, // 5분 타임아웃 (AI 생성, 프리젠테이션 생성에 시간이 걸릴 수 있음)
   headers: {
     'Content-Type': 'application/json'
   }
@@ -56,6 +56,18 @@ export async function sendChatMessage(data) {
 }
 
 /**
+ * 캐시된 공과 자료 가져오기
+ */
+export async function getCachedMaterial(weekRange, targetAudience, lessonTitle) {
+  const encodedWeekRange = encodeURIComponent(weekRange)
+  const encodedAudience = encodeURIComponent(targetAudience)
+  const encodedTitle = encodeURIComponent(lessonTitle)
+
+  const response = await api.get(`/cached-material/${encodedWeekRange}/${encodedAudience}/${encodedTitle}`)
+  return response.data
+}
+
+/**
  * Q&A 목록 가져오기
  */
 export async function getQAList(weekRange, targetAudience) {
@@ -70,6 +82,70 @@ export async function getQAList(weekRange, targetAudience) {
  */
 export async function getTargetAudiences() {
   const response = await api.get('/target-audiences')
+  return response.data
+}
+
+/**
+ * 관리자 로그인
+ */
+export async function adminLogin(password) {
+  const response = await api.post('/admin/login', { password })
+  return response.data
+}
+
+/**
+ * 공과 자료 삭제 (관리자)
+ */
+export async function deleteMaterial(data) {
+  const response = await api.post('/admin/delete-material', data)
+  return response.data
+}
+
+/**
+ * Q&A 삭제 (관리자)
+ */
+export async function deleteQA(data) {
+  const response = await api.post('/admin/delete-qa', data)
+  return response.data
+}
+
+// === 프리젠테이션 API ===
+export async function generatePresentation(data) {
+  const response = await api.post('/generate-presentation', data)
+  return response.data
+}
+
+export async function getCachedPresentation(weekRange, targetAudience, lessonTitle) {
+  const encodedWeekRange = encodeURIComponent(weekRange)
+  const encodedAudience = encodeURIComponent(targetAudience)
+  const encodedTitle = encodeURIComponent(lessonTitle)
+  const response = await api.get(`/cached-presentation/${encodedWeekRange}/${encodedAudience}/${encodedTitle}`)
+  return response.data
+}
+
+// === 게시판 API ===
+export async function getBoardPosts() {
+  const response = await api.get('/board')
+  return response.data
+}
+
+export async function createBoardPost(data) {
+  const response = await api.post('/board', data)
+  return response.data
+}
+
+export async function verifyPostPassword(data) {
+  const response = await api.post('/board/verify-password', data)
+  return response.data
+}
+
+export async function updateBoardPost(rowKey, data) {
+  const response = await api.put(`/board/${rowKey}`, data)
+  return response.data
+}
+
+export async function deleteBoardPost(rowKey, password) {
+  const response = await api.delete(`/board/${rowKey}`, { params: { password } })
   return response.data
 }
 
